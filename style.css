@@ -1,64 +1,74 @@
-body {
-    background: #e3f2fd;
-    color: #222;
-    font-family: 'Segoe UI', Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    text-align: center;
+/* Basic page + canvas */
+:root{
+  --bg:#e9f7fe;
+  --accent:#1976d2;
+  --panel:#ffffff;
+  --panel-border:#64b5f6;
+  --ground:#4caf50;
+  --block:#ffd35c;
+  --block-border:#b48c19;
+  --text:#123049;
 }
-canvas#gameCanvas {
-    display: block;
-    margin: 36px auto 0 auto;
-    border: 3px solid #1e88e5;
-    background: linear-gradient(to top, #b3e5fc 70%, #fff 100%);
-    border-radius: 16px;
-    box-shadow: 0 2px 22px #90caf9bb;
+html,body{
+  height:100%;
+  margin:0;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
 }
-#openEndedPrompt, #thankYou {
-    position: absolute;
-    left: 50%;
-    top: 100px;
-    transform: translateX(-50%);
-    background: #fff;
-    color: #1e3b50;
-    border: 2.5px solid #64b5f6;
-    border-radius: 11px;
-    box-shadow: 0 6px 30px #1976d2aa;
-    padding: 28px 34px 22px 34px;
-    z-index: 10;
-    width: 390px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+canvas#gameCanvas{
+  display:block;
+  margin:28px auto;
+  border-radius:12px;
+  box-shadow:0 8px 30px rgba(25,118,210,0.12);
+  border:3px solid rgba(25,118,210,0.18);
+  background: linear-gradient(to top, #bfefff 72%, #fff 100%);
 }
-#openEndedPrompt.hidden, #thankYou.hidden { display: none; }
-#openEndedPrompt input[type="text"] {
-    margin: 20px 0 14px 0;
-    padding: 9px 10px;
-    border-radius: 7px;
-    border: 1.5px solid #b3e5fc;
-    width: 92%;
-    font-size: 1.1em;
+
+/* Open-ended prompt (modal) */
+#openPrompt, #thankYou{
+  position: absolute;
+  left:50%;
+  transform:translateX(-50%);
+  min-width:360px;
+  max-width:480px;
+  padding:18px 20px;
+  border-radius:10px;
+  background:var(--panel);
+  border:2px solid var(--panel-border);
+  box-shadow:0 12px 40px rgba(25,118,210,0.15);
+  color:var(--text);
+  z-index:20;
 }
-#openEndedPrompt button {
-    background: #1e88e5;
-    color: #fff;
-    font-weight: 600;
-    font-size: 1.1em;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 24px;
-    cursor: pointer;
-    box-shadow: 0 2px 8px #90caf9aa;
+#openPrompt { top:98px; }
+#thankYou { top:110px; display:flex; flex-direction:column; align-items:center; }
+#openPrompt.hidden, #thankYou.hidden { display:none; }
+#promptTitle{ font-weight:600; color:var(--accent); margin-bottom:10px; }
+#promptInput {
+  width:100%;
+  padding:10px 12px;
+  font-size:15px;
+  border-radius:7px;
+  border:1.5px solid #d6f0ff;
+  outline:none;
+  box-sizing:border-box;
 }
-#thankYou pre {
-    background: #e3f2fd;
-    color: #333;
-    border-radius: 6px;
-    padding: 12px;
-    width: 350px;
-    text-align: left;
-    font-size: 1.03em;
-    margin-top: 16px;
-    overflow-x: auto;
+.prompt-actions { margin-top:12px; text-align:right; }
+#promptSubmit {
+  background:var(--accent);
+  color:white;
+  border:none;
+  padding:9px 14px;
+  border-radius:7px;
+  font-weight:600;
+  cursor:pointer;
+  box-shadow:0 6px 18px rgba(25,118,210,0.14);
+}
+
+/* Small screens - center the canvas nicely */
+@media (max-width:760px){
+  canvas#gameCanvas{ width:92%; height:auto; }
+  #openPrompt{ left:50%; transform:translateX(-50%); top:88px; width:86%; }
+  #thankYou{ width:86%; }
 }
