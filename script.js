@@ -27,7 +27,7 @@ const coinSheet = new Image(); coinSheet.src = "coin_spritesheet.png";
 // === Mario ===
 const mario = {
   x: 60, y: canvas.height - 100,
-  w: 48, h: 48,
+  w: 32, h: 32, // smaller size
   vy: 0, onGround: true, speed: 3,
   anim: "idle", frameX: 0, frameY: 0, frameCount: 0
 };
@@ -39,7 +39,7 @@ const marioAnims = {
 
 // === Goombas ===
 let goombas = [
-  { x: 400, y: canvas.height - 60, w: 40, h: 40, dir: 1, spd: 1.2, frameX: 0, frameCount: 0 }
+  { x: 400, y: canvas.height - 60, w: 28, h: 28, dir: 1, spd: 1.2, frameX: 0, frameCount: 0 }
 ];
 const goombaAnim = { row: 0, frames: 2 };
 
@@ -68,7 +68,6 @@ function drawBackground() {
   const drawW = bg.width * scale;
   const drawH = canvas.height;
 
-  // Tile across width
   let startX = bgOffset % drawW;
   if (startX > 0) startX -= drawW;
   for (let x = startX; x < canvas.width; x += drawW) {
@@ -183,29 +182,38 @@ function gameLoop() {
   drawGoombas();
   drawCoins();
 
-  // HUD
-  ctx.fillStyle = "#fff";
-  ctx.font = "20px Arial";
-  ctx.fillText("Score: " + score, 20, 30);
+  // HUD with outline
+  ctx.font = "bold 22px Arial";
+  ctx.fillStyle = "#FFF";
+  ctx.strokeStyle = "#000";
+  ctx.lineWidth = 3;
+  ctx.strokeText("Score: " + score, 20, 40);
+  ctx.fillText("Score: " + score, 20, 40);
 
   // Show current question
   if (!surveyDone && !showingPrompt) {
-    ctx.fillStyle = "#fff";
-    ctx.font = "22px Arial";
-    ctx.fillText(questions[currentQ].text, 60, 80);
+    ctx.font = "20px 'Comic Sans MS', sans-serif";
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "#000";
+    ctx.fillStyle = "#FFD700"; // gold text
+    ctx.strokeText(questions[currentQ].text, 60, canvas.height - 220);
+    ctx.fillText(questions[currentQ].text, 60, canvas.height - 220);
 
     if (questions[currentQ].type === "scale") {
       let count = questions[currentQ].scaleMax - questions[currentQ].scaleMin + 1;
       for (let i = 0; i < count; i++) {
-        let x = 100 + i * 80, y = 120;
-        ctx.fillStyle = "#f5c542";
+        let x = 100 + i * 80, y = canvas.height - 180;
+        ctx.fillStyle = "#FFD700";
         ctx.fillRect(x, y, 60, 40);
+        ctx.strokeStyle = "#000";
+        ctx.lineWidth = 2;
         ctx.strokeRect(x, y, 60, 40);
         ctx.fillStyle = "#000";
+        ctx.font = "18px Arial";
         ctx.fillText(i + 1, x + 20, y + 25);
 
         if (mario.x < x + 60 && mario.x + mario.w > x && mario.y < y + 40 && mario.y + mario.h > y) {
-          ctx.strokeStyle = "#f00";
+          ctx.strokeStyle = "#FF0000";
           ctx.lineWidth = 3;
           ctx.strokeRect(x - 2, y - 2, 64, 44);
           if (keys[" "]) submitAnswer(i + 1, x, y - 40);
