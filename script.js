@@ -493,10 +493,10 @@ function drawPlayer(x, y, w, h) {
   ctx.fillStyle = '#ffe6cf';
   ctx.fillRect(x + w * 0.18, y + 8, w * 0.64, 8);
 
-  // eye movement: shift slightly upward when jumping (vy negative)
-  const eyeBaseY = y + h * 0.42;
-  const eyeYOffset = clamp(-mario.vy * 0.35, -4, 4); // vy negative -> positive up offset
-  const eyeXOffset = clamp(mario.vy * 0.06, -2, 2); // small diagonal drift
+  // // eye movement: shift slightly upward when jumping (vy negative)
+  // const eyeBaseY = y + h * 0.42;
+  // const eyeYOffset = clamp(-mario.vy * 0.35, -4, 4); // vy negative -> positive up offset
+  // const eyeXOffset = clamp(mario.vy * 0.06, -2, 2); // small diagonal drift
 
   // // eyes
   // ctx.fillStyle = '#222';
