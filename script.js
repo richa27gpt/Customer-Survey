@@ -1,3 +1,4 @@
+
 // script.js - updates: improved end bouncing, balloons spread/colors, smiling Mario, eye movement on jump, admin link removed from end screen
 
 // ---------- Configuration ----------
