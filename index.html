@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <canvas id="gameCanvas" width="980" height="520" aria-label="Survey game canvas"></canvas>
+  <canvas id="gameCanvas" width="960" height="480" aria-label="Survey game canvas"></canvas>
 
   <!-- Open-ended modal (DOM for text responses) -->
   <div id="openPrompt" class="hidden" role="dialog" aria-modal="true">
@@ -18,18 +18,11 @@
     </div>
   </div>
 
-  <!-- End screen -->
+  <!-- End screen: minimal, no export, no replay -->
   <div id="endScreen" class="hidden" role="dialog" aria-live="polite">
     <h2>Thank you — survey complete!</h2>
-    <div id="endVisual"></div>
-    <div id="summaryCard">
-      <h3>Your responses</h3>
-      <div id="summaryList"></div>
-      <div class="end-actions">
-        <button id="downloadJson">Download JSON</button>
-        <button id="restartBtn">Play again</button>
-      </div>
-    </div>
+    <p class="end-note">Your responses have been recorded. We appreciate your time.</p>
+    <div id="celebrationArea" aria-hidden="true"></div>
   </div>
 
   <script src="script.js"></script>
