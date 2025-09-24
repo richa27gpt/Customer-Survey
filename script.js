@@ -1,4 +1,4 @@
-// script.js - Mario survey game with facial expressions and shock stars
+// script.js - Chrome-safe Mario Survey Game
 
 // ---------- Configuration ----------
 const SINGLE_SUBMIT = false;
@@ -30,13 +30,45 @@ const questions = [
 // ---------- Canvas & DOM ----------
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const W = canvas.width, H = canvas.height;
 
-const openPrompt = document.getElementById('openPrompt');
-const promptTitle = document.getElementById('promptTitle');
-const promptInput = document.getElementById('promptInput');
-const promptSubmit = document.getElementById('promptSubmit');
-const endScreen = document.getElementById('endScreen');
+// Ensure canvas resizes properly (Chrome-safe)
+let W = window.innerWidth;
+let H = window.innerHeight;
+canvas.width = W;
+canvas.height = H;
+window.addEventListener('resize', () => {
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = W;
+  canvas.height = H;
+});
+
+// Safe localStorage helpers
+function safeSetItem(key, value) {
+  try { localStorage.setItem(key, value); } catch (e) {}
+}
+function safeGetItem(key) {
+  try { return localStorage.getItem(key); } catch (e) { return null; }
+}
+
+// Safe submit (skip when on GitHub Pages)
+async function submitAnonymizedResults(payload) {
+  if (location.hostname.endsWith("github.io")) {
+    console.log("Skipping submit on GitHub Pages");
+    return true;
+  }
+  try {
+    const resp = await fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    return resp.ok;
+  } catch (e) {
+    console.warn("Submit error", e);
+    return false;
+  }
+}
 
 // ---------- Game entities ----------
 const gravity = 0.38;
@@ -50,113 +82,97 @@ const goombas = [
   { x: 670, y: H - 28 - 20, w: 22, h: 20, dir: -1, spd: 0.96, bob: 0 }
 ];
 
-let answerBlocks = [];
-const blockW = 48, blockH = 34, blockGap = 18, blockAbove = 108;
-let coinPops = [], fireworks = [], balloons = [];
-let currentQ = 0, answers = [], surveyDone = false, showingPrompt = false;
-let lastSelectionTime = 0, endCelebrationRunning = false, endJumpTimer = 0, endSpawnInterval = null;
+// ---------- Stars effect ----------
+function updateStars() {
+  mario.stars.forEach(s => {
+    s.x += s.dx; s.y += s.dy; s.dy += 0.08; s.life--; s.ang += s.spin;
+  });
+  mario.stars = mario.stars.filter(s => s.life > 0);
+}
+function drawStars() {
+  mario.stars.forEach(s => {
+    const alpha = Math.max(0, s.life / 50);
+    const size = 4 + (s.life / 10);
+    ctx.fillStyle = `rgba(255,215,0,${alpha})`;
+    drawStar(ctx, s.x, s.y, 5, size, size / 2, s.ang);
+  });
+}
+function drawStar(ctx, cx, cy, spikes, outerR, innerR, rot) {
+  let step = Math.PI / spikes, angle = rot;
+  ctx.beginPath();
+  for (let i = 0; i < spikes; i++) {
+    ctx.lineTo(cx + Math.cos(angle) * outerR, cy + Math.sin(angle) * outerR);
+    angle += step;
+    ctx.lineTo(cx + Math.cos(angle) * innerR, cy + Math.sin(angle) * innerR);
+    angle += step;
+  }
+  ctx.closePath();
+  ctx.fill();
+}
 
-// ---------- Input ----------
-const keys = {};
-window.addEventListener('keydown', e => { keys[e.key] = true; });
-window.addEventListener('keyup', e => { keys[e.key] = false; });
-
-// ---------- Helpers ----------
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-const now = () => new Date().getTime();
-function rectsCollide(a, b) { return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y; }
-
-// ---------- Player Drawing ----------
-function drawPlayer(x,y,w,h){
+// ---------- Player drawing (eyes, mouth, shocked face) ----------
+function drawPlayer(x, y, w, h) {
   ctx.save();
   // Body
-  ctx.fillStyle='#e84c3d';
-  roundRect(ctx,x,y,w,h,6,true,false);
-  ctx.fillStyle='#bd2e2e';
-  ctx.fillRect(x,y,w,Math.round(h*0.18));
-  ctx.fillStyle='#ffe6cf';
-  ctx.fillRect(x+w*0.18,y+8,w*0.64,8);
+  ctx.fillStyle = '#e84c3d';
+  ctx.fillRect(x, y, w, h);
+  // Hat
+  ctx.fillStyle = '#bd2e2e';
+  ctx.fillRect(x, y, w, Math.round(h * 0.18));
+  // Face patch
+  ctx.fillStyle = '#ffe6cf';
+  ctx.fillRect(x + w * 0.18, y + 8, w * 0.64, 8);
 
-  if(mario.shocked){
+  if (mario.shocked) {
     // 😲 shocked face
-    ctx.fillStyle="#fff";
+    ctx.fillStyle = "#fff";
     ctx.beginPath();
-    ctx.ellipse(x+w*0.36,y+h*0.42,4,5,0,0,Math.PI*2);
-    ctx.ellipse(x+w*0.64,y+h*0.42,4,5,0,0,Math.PI*2);
+    ctx.ellipse(x + w * 0.36, y + h * 0.42, 4, 5, 0, 0, Math.PI * 2);
+    ctx.ellipse(x + w * 0.64, y + h * 0.42, 4, 5, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle="#222";
+    ctx.fillStyle = "#222";
     ctx.beginPath();
-    ctx.arc(x+w*0.36,y+h*0.42,1.2,0,Math.PI*2);
-    ctx.arc(x+w*0.64,y+h*0.42,1.2,0,Math.PI*2);
+    ctx.arc(x + w * 0.36, y + h * 0.42, 1.2, 0, Math.PI * 2);
+    ctx.arc(x + w * 0.64, y + h * 0.42, 1.2, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle="#b33";
+    ctx.fillStyle = "#b33";
     ctx.beginPath();
-    ctx.arc(x+w*0.5,y+h*0.68,5,0,Math.PI*2);
+    ctx.arc(x + w * 0.5, y + h * 0.68, 5, 0, Math.PI * 2);
     ctx.fill();
   } else {
-    // Normal eyes: follow motion
-    let vx=0;if(keys['ArrowLeft']||keys['a'])vx=-1;if(keys['ArrowRight']||keys['d'])vx=1;
-    const eyeBaseY=y+h*0.42;
-    const eyeYOffset=clamp(-mario.vy*0.35,-6,6);
-    const eyeXOffset=clamp(vx*4,-4,4);
-    ctx.fillStyle='#222';
+    // Normal eyes track movement
+    let vx = 0;
+    if (keys["ArrowLeft"] || keys["a"]) vx = -1;
+    if (keys["ArrowRight"] || keys["d"]) vx = 1;
+    const eyeBaseY = y + h * 0.42;
+    const eyeYOffset = clamp(-mario.vy * 0.35, -6, 6);
+    const eyeXOffset = clamp(vx * 4, -4, 4);
+    ctx.fillStyle = '#222';
     ctx.beginPath();
-    ctx.arc(x+w*0.36+eyeXOffset,eyeBaseY+eyeYOffset,2.5,0,Math.PI*2);
-    ctx.arc(x+w*0.64+eyeXOffset,eyeBaseY+eyeYOffset,2.5,0,Math.PI*2);
+    ctx.arc(x + w * 0.36 + eyeXOffset, eyeBaseY + eyeYOffset, 2.5, 0, Math.PI * 2);
+    ctx.arc(x + w * 0.64 + eyeXOffset, eyeBaseY + eyeYOffset, 2.5, 0, Math.PI * 2);
     ctx.fill();
 
     // Mouth
-    if(surveyDone){
-      ctx.strokeStyle='#3b2a1a'; ctx.lineWidth=2;
-      ctx.beginPath(); ctx.arc(x+w*0.5,y+h*0.65,10,0.1,Math.PI-0.1); ctx.stroke();
-      ctx.fillStyle='#b33'; ctx.beginPath(); ctx.ellipse(x+w*0.5,y+h*0.70,8,5,0,0,Math.PI*2); ctx.fill();
+    if (surveyDone) {
+      ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x + w * 0.5, y + h * 0.65, 10, 0.1, Math.PI - 0.1);
+      ctx.stroke();
+      ctx.fillStyle = '#b33';
+      ctx.beginPath();
+      ctx.ellipse(x + w * 0.5, y + h * 0.70, 8, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
     } else {
-      ctx.strokeStyle='#3b2a1a'; ctx.lineWidth=1.2;
-      ctx.beginPath(); ctx.arc(x+w*0.5,y+h*0.64,4,0.15,Math.PI-0.15); ctx.stroke();
+      ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(x + w * 0.5, y + h * 0.64, 4, 0.15, Math.PI - 0.15);
+      ctx.stroke();
     }
   }
 
-  // Stars effect if shocked
+  // ⭐ Stars if shocked
   updateStars();
   drawStars();
   ctx.restore();
-}
-
-function updateStars(){
-  mario.stars.forEach(s=>{
-    s.x+=s.dx; s.y+=s.dy; s.dy+=0.08; s.life--; s.ang+=s.spin;
-  });
-  mario.stars=mario.stars.filter(s=>s.life>0);
-}
-function drawStars(){
-  mario.stars.forEach(s=>{
-    const alpha=Math.max(0,s.life/50);
-    const size=4+(s.life/10);
-    ctx.fillStyle=`rgba(255,215,0,${alpha})`;
-    drawStar(ctx,s.x,s.y,5,size,size/2,s.ang);
-  });
-}
-function drawStar(ctx,cx,cy,spikes,outerR,innerR,rot){
-  let step=Math.PI/spikes, angle=rot;
-  ctx.beginPath();
-  for(let i=0;i<spikes;i++){
-    ctx.lineTo(cx+Math.cos(angle)*outerR,cy+Math.sin(angle)*outerR);
-    angle+=step;
-    ctx.lineTo(cx+Math.cos(angle)*innerR,cy+Math.sin(angle)*innerR);
-    angle+=step;
-  }
-  ctx.closePath(); ctx.fill();
-}
-
-function roundRect(ctx,x,y,w,h,r,fill,stroke){
-  if(typeof r==='undefined')r=5;
-  ctx.beginPath();
-  ctx.moveTo(x+r,y);
-  ctx.arcTo(x+w,y,x+w,y+h,r);
-  ctx.arcTo(x+w,y+h,x,y+h,r);
-  ctx.arcTo(x,y+h,x,y,r);
-  ctx.arcTo(x,y,x+w,y,r);
-  ctx.closePath();
-  if(fill)ctx.fill();
-  if(stroke)ctx.stroke();
 }
