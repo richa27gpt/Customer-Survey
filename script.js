@@ -498,13 +498,13 @@ function drawPlayer(x, y, w, h) {
   const eyeYOffset = clamp(-mario.vy * 0.35, -4, 4); // vy negative -> positive up offset
   const eyeXOffset = clamp(mario.vy * 0.06, -2, 2); // small diagonal drift
 
-  // eyes
-  ctx.fillStyle = '#222';
-  ctx.beginPath();
-  ctx.arc(x + w * 0.36 + eyeXOffset, eyeBaseY + eyeYOffset, 2.2, 0, Math.PI * 2);
-  ctx.arc(x + w * 0.64 - eyeXOffset, eyeBaseY + eyeYOffset - 0.6, 2.2, 0, Math.PI * 2);
-  ctx.fill();
-
+  // // eyes
+  // ctx.fillStyle = '#222';
+  // ctx.beginPath();
+  // ctx.arc(x + w * 0.36 + eyeXOffset, eyeBaseY + eyeYOffset, 2.2, 0, Math.PI * 2);
+  // ctx.arc(x + w * 0.64 - eyeXOffset, eyeBaseY + eyeYOffset - 0.6, 2.2, 0, Math.PI * 2);
+  // ctx.fill();
+// 
   // mouth: small smile during survey, bigger laughing arc at end (and slightly open)
 //   if (surveyDone) {
 //     ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 1.4;
@@ -520,6 +520,23 @@ function drawPlayer(x, y, w, h) {
 
 //   ctx.restore();
 // }
+
+// Eye movement: diagonal upward when jumping, diagonal downward when falling
+const eyeBaseY = y + h * 0.42;
+
+// Vertical offset: stronger shift when jumping
+const eyeYOffset = clamp(-mario.vy * 0.25, -5, 3);
+
+// Horizontal offset: slight inward when going up, outward when falling
+const eyeXOffset = clamp(-mario.vy * 0.08, -3, 3);
+
+// Eyes (black pupils)
+ctx.fillStyle = '#222';
+ctx.beginPath();
+ctx.arc(x + w * 0.36 + eyeXOffset, eyeBaseY + eyeYOffset, 2.2, 0, Math.PI * 2);
+ctx.arc(x + w * 0.64 - eyeXOffset, eyeBaseY + eyeYOffset, 2.2, 0, Math.PI * 2);
+ctx.fill();
+  
 // mouth: small smile during survey, bigger laughing arc at end
 if (surveyDone) {
   // Big laughing mouth
