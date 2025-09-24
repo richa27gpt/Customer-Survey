@@ -1,8 +1,4 @@
-// Mario-style Survey Game (from scratch)
-// - Fixed question panel at top-center of the canvas (does not move with Mario).
-// - Answer boxes (1-5) are positioned on the ground, centered horizontally; user jumps onto them to select.
-// - Open-ended (text) questions use an HTML modal prompt.
-// - Selection occurs when Mario lands on a box or when user clicks a box.
+// Mario-style Survey Game — strike blocks from below to answer
 
 // ---------- QUESTIONS ----------
 const questions = [
@@ -27,18 +23,22 @@ const goombas = [
   { x: 620, y: H - 28 - 18, w: 18, h: 18, dir: -1, spd: 1.0 }
 ];
 
-// Answer blocks (rendered on ground centered) - will be recalculated per question
+// Answer blocks suspended above ground (strike from below)
 let answerBlocks = [];
 const blockW = 46, blockH = 34, blockGap = 18;
+const blockHeightAboveGround = 92; // how high the bottom of block is above ground
+
+// coins/particles from strikes
+let coinPops = [];
 
 // State
 let currentQ = 0;
 let answers = [];
 let surveyDone = false;
 let showingPrompt = false;
-let lastSelectionTime = 0; // debounce time for auto-select on landing
+let lastSelectionTime = 0;
 
-// ---------- DOM elements for text prompt & results ----------
+// DOM elements
 const openPrompt = document.getElementById('openPrompt');
 const promptTitle = document.getElementById('promptTitle');
 const promptInput = document.getElementById('promptInput');
@@ -60,7 +60,8 @@ canvas.addEventListener('mousedown', (e)=>{
   for (let i = 0; i < answerBlocks.length; i++) {
     const b = answerBlocks[i];
     if (mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h) {
-      selectScale(i + 1);
+      // emulate a strike animation and then select
+      strikeBlock(i);
       return;
     }
   }
@@ -71,7 +72,7 @@ function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
 function rectsCollide(a, b){ return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y; }
 function now(){ return (new Date()).getTime(); }
 
-// ---------- CALCULATE ANSWER BLOCKS (centered on ground) ----------
+// ---------- LAYOUT ANSWER BLOCKS ----------
 function layoutAnswerBlocks() {
   const q = questions[currentQ];
   if (!q || q.type !== "scale") {
@@ -81,18 +82,31 @@ function layoutAnswerBlocks() {
   const n = q.scale || 5;
   const totalW = n*blockW + (n-1)*blockGap;
   const startX = Math.round(W/2 - totalW/2);
-  const y = H - 28 - blockH; // sitting on ground
+  const y = H - 28 - blockHeightAboveGround - blockH; // suspended above ground
   answerBlocks = [];
   for (let i=0;i<n;i++){
-    answerBlocks.push({ x: startX + i*(blockW+blockGap), y: y, w: blockW, h: blockH, val: i+1 });
+    answerBlocks.push({ x: startX + i*(blockW+blockGap), y: y, w: blockW, h: blockH, val: i+1, struck:false, shake:0 });
   }
+}
+
+// ---------- STRIKE / SELECTION ----------
+function strikeBlock(index) {
+  const b = answerBlocks[index];
+  if (!b || b.struck) return;
+  b.struck = true;
+  b.shake = 8;
+  // add coin pop at top center of block
+  coinPops.push({ x: b.x + b.w/2, y: b.y, vy: -3.6, alpha: 1, life: 0 });
+  // register answer with small delay so animation is visible
+  if (now() - lastSelectionTime < 350) return;
+  lastSelectionTime = now();
+  setTimeout(()=>{
+    selectScale(b.val);
+  }, 380);
 }
 
 // ---------- SUBMISSION ----------
 function selectScale(val) {
-  // Debounce short period to avoid rapid double selects
-  if (now() - lastSelectionTime < 450) return;
-  lastSelectionTime = now();
   answers.push(val);
   advanceQuestion();
 }
@@ -104,7 +118,9 @@ function advanceQuestion() {
   mario.vy = 0;
   mario.onGround = true;
   if (currentQ >= questions.length) finishSurvey();
-  else layoutAnswerBlocks();
+  else {
+    layoutAnswerBlocks();
+  }
 }
 
 // ---------- TEXT PROMPT ----------
@@ -144,9 +160,13 @@ function finishSurvey() {
 
 // ---------- GAME LOOP ----------
 layoutAnswerBlocks();
+
 function gameLoop(){
   // physics & input
   if (!surveyDone && !showingPrompt) {
+    // save previous Y to detect head collisions
+    const prevY = mario.y;
+
     if (keys["ArrowLeft"] || keys["a"]) mario.x -= mario.speed;
     if (keys["ArrowRight"] || keys["d"]) mario.x += mario.speed;
     if ((keys["ArrowUp"] || keys["w"]) && mario.onGround) {
@@ -156,31 +176,34 @@ function gameLoop(){
     mario.x = clamp(mario.x, 6, W - mario.w - 6);
     mario.vy += 0.38; // gravity
     mario.y += mario.vy;
-    if (mario.y + mario.h >= H - 28) {
-      mario.y = H - 28 - mario.h;
-      mario.vy = 0;
-      // detect landing on an answer block -> auto-select if fully on top
-      if (!mario.onGround) {
-        // only treat as "landing" if we were falling
-        for (let i=0;i<answerBlocks.length;i++){
-          const b = answerBlocks[i];
-          // check if standing vertically on block (feet overlap with block top) and horizontally overlapping enough
-          const feetY = mario.y + mario.h;
-          const standingOnTop = feetY >= b.y && feetY <= b.y + 8;
-          const horizOverlap = (mario.x + mario.w*0.2) < (b.x + b.w) && (mario.x + mario.w*0.8) > b.x;
-          if (standingOnTop && horizOverlap) {
-            // auto-select value unless very recently selected
-            selectScale(b.val);
+
+    // If mario moved upward through a block bottom -> strike detection
+    if (mario.vy < 0) {
+      for (let i=0;i<answerBlocks.length;i++){
+        const b = answerBlocks[i];
+        if (b.struck) continue;
+        // check vertical crossing (from below to inside)
+        const blockBottom = b.y + b.h;
+        if (prevY > blockBottom && mario.y <= blockBottom) {
+          // horizontal overlap (substantial part)
+          const leftOverlap = (mario.x + mario.w*0.12) < (b.x + b.w);
+          const rightOverlap = (mario.x + mario.w*0.88) > b.x;
+          if (leftOverlap && rightOverlap) {
+            strikeBlock(i);
             break;
           }
         }
       }
-      mario.onGround = true;
-    } else {
-      mario.onGround = false;
     }
 
-    // Goombas movement
+    // ground collision
+    if (mario.y + mario.h >= H - 28) {
+      mario.y = H - 28 - mario.h;
+      mario.vy = 0;
+      mario.onGround = true;
+    } else mario.onGround = false;
+
+    // Goombas movement & collisions
     for (let g of goombas) {
       g.x += g.dir * g.spd;
       if (g.x <= 12 || g.x + g.w >= W - 12) g.dir *= -1;
@@ -190,15 +213,11 @@ function gameLoop(){
       }
     }
 
-    // If current question is text type, and Mario reaches some "trigger area" near center, open prompt.
-    // (We won't force auto prompt — instead when you step anywhere you can read the top panel and the prompt shows automatically here.)
+    // For text questions: if mario stands in center region, open the prompt
     const q = questions[currentQ];
     if (q && q.type === "text") {
-      // Show text prompt once (on first contact with center area) - avoid repeatedly popping
-      // Show prompt when Mario stands within center 40% of canvas
-      const centerLeft = W * 0.3, centerRight = W * 0.7;
+      const centerLeft = W * 0.35, centerRight = W * 0.65;
       if (mario.onGround && mario.x + mario.w/2 >= centerLeft && mario.x + mario.w/2 <= centerRight && !showingPrompt) {
-        // Slight delay to let player read and then prompt
         setTimeout(()=>{
           if (!showingPrompt && !surveyDone && questions[currentQ] && questions[currentQ].type === "text") {
             showTextPrompt(questions[currentQ].text, (resp)=>{
@@ -206,16 +225,28 @@ function gameLoop(){
               advanceQuestion();
             });
           }
-        }, 160);
+        }, 220);
       }
     }
+  }
+
+  // ----- UPDATE coin pops & block shakes -----
+  for (let i=coinPops.length-1;i>=0;i--){
+    const c = coinPops[i];
+    c.y += c.vy;
+    c.vy += 0.14;
+    c.life++;
+    c.alpha = Math.max(0, 1 - c.life/38);
+    if (c.life > 42) coinPops.splice(i,1);
+  }
+  for (let b of answerBlocks) {
+    if (b.shake > 0) b.shake--;
   }
 
   // ----- DRAW -----
   ctx.clearRect(0,0,W,H);
 
-  // background sky gradient already in CSS canvas background; draw subtle clouds
-  // (small decorative clouds)
+  // sky decorations
   drawCloud(80, 70, 0.9);
   drawCloud(260, 48, 0.6);
   drawCloud(720, 84, 0.8);
@@ -224,16 +255,34 @@ function gameLoop(){
   ctx.fillStyle = "#4caf50";
   ctx.fillRect(0, H - 28, W, 28);
 
-  // answer blocks (draw on ground, centered) - not tied to Mario
+  // draw answer blocks (suspended)
   for (let b of answerBlocks) {
-    ctx.fillStyle = "#ffd35c";
-    ctx.fillRect(b.x, b.y, b.w, b.h);
+    const shakeOffset = (b.shake > 0) ? Math.sin(b.shake * 0.7) * 4 : 0;
+    const drawY = b.y + shakeOffset;
+    // block
+    ctx.fillStyle = b.struck ? "#e2e2e2" : "#ffd35c";
+    ctx.fillRect(b.x, drawY, b.w, b.h);
     ctx.strokeStyle = "#b48c19";
     ctx.lineWidth = 2;
-    ctx.strokeRect(b.x, b.y, b.w, b.h);
+    ctx.strokeRect(b.x, drawY, b.w, b.h);
+    // number
     ctx.fillStyle = "#1f1f1f";
     ctx.font = "18px Arial";
-    ctx.fillText(String(b.val), b.x + b.w/2 - 6, b.y + b.h/2 + 6);
+    ctx.fillText(String(b.val), b.x + b.w/2 - 6, drawY + b.h/2 + 6);
+  }
+
+  // draw coins (pops)
+  for (let c of coinPops) {
+    ctx.save();
+    ctx.globalAlpha = c.alpha;
+    ctx.fillStyle = "#ffd24d";
+    ctx.beginPath();
+    ctx.ellipse(c.x, c.y, 8, 8, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = "#c28a00";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
   }
 
   // goombas
@@ -265,10 +314,8 @@ function gameLoop(){
   ctx.fillRect(-mario.w/4, -mario.h/2 + 6, mario.w/2, mario.h/6);
   ctx.restore();
 
-  // fixed question panel at top-center (does not move with Mario)
-  if (!surveyDone) {
-    drawQuestionPanel();
-  }
+  // top fixed question panel
+  if (!surveyDone) drawQuestionPanel();
 
   requestAnimationFrame(gameLoop);
 }
@@ -317,10 +364,9 @@ function drawQuestionPanel() {
   // helper hint
   ctx.fillStyle = "#4a6b82";
   ctx.font = "13px Arial";
-  ctx.fillText("Jump onto a number to select it (or click). For text responses, move into the center to type.", px + 18, py + panelH - 12);
+  ctx.fillText("Jump up and strike a numbered box from below to select it (or click a box).", px + 18, py + panelH - 12);
 }
 
-// ---------- HELPERS ----------
 function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   const words = text.split(' ');
   let line = '';
@@ -341,16 +387,9 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
 // ---------- INIT ----------
 layoutAnswerBlocks();
 
-// Ensure answer blocks recalc when question changes (text questions clear blocks)
+// Ensure answer blocks are recalculated when question changes
 const originalAdvance = advanceQuestion;
 advanceQuestion = function(){
   originalAdvance();
   layoutAnswerBlocks();
 };
-
-// Make sure prompt for text question works immediately on first display (if question starts as text)
-if (questions.length > 0 && questions[0].type === "text") {
-  // player can walk into center to trigger prompt; initial layout already done
-}
-
-// End of script
