@@ -1,10 +1,4 @@
-// script.js - updated per user requests:
-// - preserve Mario's x position on advance
-// - continuously spawn fireworks & balloons on end screen
-// - Mario does excited jumps and shows a smile at the end
-// - restored goombas draw according to v9 snippet
-// - reversed rating numbers (highest -> lowest left-to-right) with smileys
-// - local fallback storage of responses for admin analysis
+// script.js - updates: improved end bouncing, balloons spread/colors, smiling Mario, eye movement on jump, admin link removed from end screen
 
 // ---------- Configuration ----------
 const SINGLE_SUBMIT = false; // set to true to re-enable "only once per browser" (uses localStorage)
@@ -13,31 +7,26 @@ const LOCAL_RESPONSES_KEY = 'survey_responses';
 
 // ---------- QUESTIONS ----------
 const questions = [
-  // Section 1: Leadership
   { section: "Leadership", text: "How would you rate the overall vision and strategic direction provided by XYZ’s leadership?", type: "scale", scale: 5 },
   { section: "Leadership", text: "To what extent do you feel XYZ’s leadership is aligned with your organization’s goals and priorities?", type: "scale", scale: 5 },
   { section: "Leadership", text: "Over the past year, what specific improvements or changes in XYZ’s leadership have you noticed?", type: "text" },
   { section: "Leadership", text: "Looking forward, what do XYZ’s leadership need to improve to support you better?", type: "text" },
 
-  // Section 2: Account Management
   { section: "Account Management", text: "How satisfied are you with the responsiveness and engagement of your account manager?", type: "scale", scale: 5 },
   { section: "Account Management", text: "Has your account manager changed this year? If Yes, to what extent has this change affected your experience of XYZ (1 = Much Worse, 5 = Much Better)?", type: "scale", scale: 5 },
   { section: "Account Management", text: "To what extent do you feel your account manager is aligned with your organization’s goals and priorities?", type: "scale", scale: 5 },
   { section: "Account Management", text: "What additional steps could your account manager take to improve responsiveness, engagement, or alignment with your organization?", type: "text" },
 
-  // Section 3: Service Delivery and Responsiveness
   { section: "Service Delivery", text: "How would you rate the overall quality of service delivery provided by XYZ?", type: "scale", scale: 5 },
   { section: "Service Delivery", text: "How satisfied are you with XYZ’s response times to your requests or issues?", type: "scale", scale: 5 },
   { section: "Service Delivery", text: "How do you rate XYZ’s overall technical competency for the services provided to you?", type: "scale", scale: 5 },
   { section: "Service Delivery", text: "What improvements, if any, have you noticed in XYZ’s service delivery over the past year?", type: "text" },
   { section: "Service Delivery", text: "How can XYZ further improve future service delivery?", type: "text" },
 
-  // Section 4: Credibility and Engagement
   { section: "Credibility", text: "How would you rate XYZ’s credibility as a trusted partner?", type: "scale", scale: 5 },
   { section: "Credibility", text: "How engaged do you feel XYZ is in supporting your business goals and priorities?", type: "scale", scale: 5 },
   { section: "Credibility", text: "What additional steps could XYZ take to improve their credibility or engagement with your organization?", type: "text" },
 
-  // Section 5: General Feedback
   { section: "General", text: "What do you think XYZ is doing well?", type: "text" },
   { section: "General", text: "What areas do you think XYZ could improve?", type: "text" }
 ];
@@ -194,7 +183,6 @@ async function submitAnonymizedResults(payload) {
 }
 
 function storeLocalBackup(payload) {
-  // Append to localStorage backup (admin UI reads this)
   try {
     const raw = localStorage.getItem(LOCAL_RESPONSES_KEY);
     const arr = raw ? JSON.parse(raw) : [];
@@ -206,15 +194,13 @@ function storeLocalBackup(payload) {
 // ---------- Finish: end screen + continuous celebration + mario excitement ----------
 function finishSurvey() {
   surveyDone = true;
-  // optionally record single-run on client side (only if SINGLE_SUBMIT is true)
   if (SINGLE_SUBMIT) {
     try { localStorage.setItem(LOCAL_KEY, '1'); } catch (e) { /* ignore */ }
   }
 
-  // Build anonymized payload: answers + timestamp + minimal non-PII metadata
   const payload = {
     timestamp: new Date().toISOString(),
-    answers: answers.slice(), // array of answers in order
+    answers: answers.slice(),
     metadata: {
       ua: navigator.userAgent ? navigator.userAgent.split(')')[0] + ')' : '',
       screen: { w: window.screen.width, h: window.screen.height },
@@ -222,7 +208,12 @@ function finishSurvey() {
     }
   };
 
-  // Try to submit (best-effort); do not expose the results to user
+  // center Mario for celebration and ensure grounded
+  mario.x = Math.round(W/2 - mario.w/2);
+  mario.y = H - 28 - mario.h;
+  mario.vy = 0;
+  mario.onGround = true;
+
   submitAnonymizedResults(payload).then(success => {
     openPrompt.classList.add('hidden');
     endScreen.classList.remove('hidden');
@@ -238,12 +229,10 @@ function finishSurvey() {
 function startEndCelebration() {
   if (endCelebrationRunning) return;
   endCelebrationRunning = true;
-  spawnCelebration(); // initial burst
+  spawnCelebration();
   endSpawnInterval = setInterval(() => {
-    // periodic small bursts
-    spawnCelebration(1, 3);
-  }, 1500);
-  // Mario excited jumps: set timer counter
+    spawnCelebration(2, 6);
+  }, 1400);
   endJumpTimer = 0;
 }
 
@@ -253,17 +242,18 @@ function stopEndCelebration() {
 }
 
 function spawnCelebration(balloonsCount = 8, fireworksCount = 10) {
+  const colors = ['#ffd35c', '#64b5f6', '#ff8a65', '#aed581', '#e57373', '#ba68c8'];
   for (let i = 0; i < balloonsCount; i++) {
     balloons.push({
-      x: 80 + i * 80 + Math.random() * 40,
-      y: 520 + Math.random() * 40,
-      vx: (Math.random() - 0.5) * 0.6,
-      vy: -1.2 - Math.random() * 0.8,
-      color: ['#ffd35c', '#64b5f6', '#ff8a65', '#aed581'][i % 4],
+      x: Math.random() * W,
+      y: H + 30 + Math.random() * 40,
+      vx: (Math.random() - 0.5) * 0.8,
+      vy: -1 - Math.random() * 1.4,
+      color: colors[Math.floor(Math.random() * colors.length)],
       life: 0
     });
   }
-  for (let i = 0; i < fireworksCount; i++) createFirework(160 + Math.random() * (W - 320), 120 + Math.random() * 80);
+  for (let i = 0; i < fireworksCount; i++) createFirework(80 + Math.random() * (W - 160), 80 + Math.random() * 140);
 }
 
 function createFirework(x, y) {
@@ -287,7 +277,6 @@ function createFirework(x, y) {
 layoutAnswerBlocks();
 
 (function mainLoop() {
-  // SINGLE_SUBMIT guard is disabled by default for testing.
   if (SINGLE_SUBMIT && localStorage.getItem(LOCAL_KEY) === '1' && !surveyDone) {
     surveyDone = true;
     endScreen.classList.remove('hidden');
@@ -332,9 +321,7 @@ layoutAnswerBlocks();
     for (let g of goombas) {
       g.x += g.dir * g.spd;
       if (g.x <= 12 || g.x + g.w >= W - 12) g.dir *= -1;
-      // bob animation
       g.bob += 0.04;
-      // collision resets Mario to start
       if (rectsCollide(mario, g)) {
         mario.x = 80; mario.y = H - 28 - mario.h; mario.vy = 0; mario.onGround = true;
       }
@@ -357,11 +344,14 @@ layoutAnswerBlocks();
   // End-screen behavior: excited Mario jumps repeatedly while celebration running
   if (surveyDone && endCelebrationRunning) {
     endJumpTimer++;
-    // every ~32 frames give a small impulse so Mario bounces
-    if (endJumpTimer % 36 === 0 && mario.onGround) {
-      mario.vy = -5.2;
+    // stronger and more frequent impulse
+    if (endJumpTimer % 28 === 0 && mario.onGround) {
+      mario.vy = -6.2;
       mario.onGround = false;
     }
+    // small horizontal bob while celebrating
+    mario.x += Math.sin(endJumpTimer * 0.08) * 0.8;
+    mario.x = clamp(mario.x, 10, W - mario.w - 10);
   }
 
   // update coin pops and shakes
@@ -426,12 +416,10 @@ layoutAnswerBlocks();
   for (const g of goombas) {
     const bob = Math.sin(g.bob) * 2;
     const gx = g.x, gy = g.y + bob;
-    // body
     ctx.fillStyle = "#8d5524";
     ctx.beginPath();
     ctx.ellipse(gx + g.w/2, gy + g.h/2, g.w/2, g.h/2, 0, 0, Math.PI*2);
     ctx.fill();
-    // eyes
     ctx.fillStyle = "#fff";
     ctx.beginPath();
     ctx.arc(gx + g.w/2 - 4, gy + g.h/2 - 6, 2.5, 0, Math.PI*2);
@@ -444,7 +432,7 @@ layoutAnswerBlocks();
     ctx.fill();
   }
 
-  // mario (v9-style, shows smile when end)
+  // mario (v9-style, shows smile when end, eyes move with jump)
   drawPlayer(mario.x, mario.y, mario.w, mario.h);
 
   // top fixed question panel
@@ -460,7 +448,9 @@ layoutAnswerBlocks();
     ctx.save();
     ctx.fillStyle = bl.color; ctx.beginPath(); ctx.ellipse(bl.x, bl.y, 14, 18, 0, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = '#ffffff22'; ctx.lineWidth = 1; ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(bl.x, bl.y + 18); ctx.lineTo(bl.x, bl.y + 34); ctx.strokeStyle = '#a7c9d8'; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bl.x, bl.y + 18);
+    ctx.lineTo(bl.x, bl.y + 34);
+    ctx.strokeStyle = '#a7c9d8'; ctx.stroke();
     ctx.restore();
   }
 
@@ -470,7 +460,10 @@ layoutAnswerBlocks();
 // ---------- Drawing helpers ----------
 function drawCloud(cx, cy, s = 1) {
   ctx.save(); ctx.globalAlpha = 0.95 * s; ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.ellipse(cx, cy, 32 * s, 20 * s, 0, 0, Math.PI * 2); ctx.ellipse(cx + 26 * s, cy + 6 * s, 22 * s, 14 * s, 0, 0, Math.PI * 2); ctx.ellipse(cx - 26 * s, cy + 6 * s, 22 * s, 14 * s, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(cx, cy, 32 * s, 20 * s, 0, 0, Math.PI * 2);
+  ctx.ellipse(cx + 26 * s, cy + 6 * s, 22 * s, 14 * s, 0, 0, Math.PI * 2);
+  ctx.ellipse(cx - 26 * s, cy + 6 * s, 22 * s, 14 * s, 0, 0, Math.PI * 2);
+  ctx.fill();
   ctx.restore();
 }
 function roundRect(ctx, x, y, w, h, r, fill, stroke) {
@@ -486,7 +479,7 @@ function roundRect(ctx, x, y, w, h, r, fill, stroke) {
   if (stroke) ctx.stroke();
 }
 
-// mario drawing (v9 style): small smile when surveyDone
+// mario drawing (v9 style): small smile throughout, bigger laugh at end; eyes track upward while jumping
 function drawPlayer(x, y, w, h) {
   ctx.save();
   // body
@@ -498,27 +491,30 @@ function drawPlayer(x, y, w, h) {
   // face patch
   ctx.fillStyle = '#ffe6cf';
   ctx.fillRect(x + w * 0.18, y + 8, w * 0.64, 8);
+
+  // eye movement: shift slightly upward when jumping (vy negative)
+  const eyeBaseY = y + h * 0.42;
+  const eyeYOffset = clamp(-mario.vy * 0.35, -4, 4); // vy negative -> positive up offset
+  const eyeXOffset = clamp(mario.vy * 0.06, -2, 2); // small diagonal drift
+
   // eyes
   ctx.fillStyle = '#222';
   ctx.beginPath();
-  ctx.arc(x + w * 0.36, y + h * 0.42, 2.2, 0, Math.PI * 2);
-  ctx.arc(x + w * 0.64, y + h * 0.42, 2.2, 0, Math.PI * 2);
+  ctx.arc(x + w * 0.36 + eyeXOffset, eyeBaseY + eyeYOffset, 2.2, 0, Math.PI * 2);
+  ctx.arc(x + w * 0.64 - eyeXOffset, eyeBaseY + eyeYOffset - 0.6, 2.2, 0, Math.PI * 2);
   ctx.fill();
 
-  // mouth: neutral normally, smile on end
+  // mouth: small smile during survey, bigger laughing arc at end (and slightly open)
   if (surveyDone) {
-    ctx.strokeStyle = '#3b2a1a';
-    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 1.4;
     ctx.beginPath();
-    ctx.arc(x + w * 0.5, y + h * 0.62, 5, 0.15, Math.PI - 0.15);
+    ctx.arc(x + w * 0.5, y + h * 0.62, 6, 0.12, Math.PI - 0.12);
     ctx.stroke();
+    // tiny open mouth fill for laugh
+    ctx.fillStyle = '#b33'; ctx.beginPath(); ctx.ellipse(x + w * 0.5, y + h * 0.62 + 6, 4, 2.6, 0, 0, Math.PI * 2); ctx.fill();
   } else {
-    ctx.strokeStyle = '#3b2a1a';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(x + w * 0.42, y + h * 0.64);
-    ctx.lineTo(x + w * 0.58, y + h * 0.64);
-    ctx.stroke();
+    ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(x + w * 0.42, y + h * 0.64); ctx.lineTo(x + w * 0.58, y + h * 0.64); ctx.stroke();
   }
 
   ctx.restore();
@@ -558,5 +554,3 @@ advanceQuestion = function () {
   originalAdvance();
   layoutAnswerBlocks();
 };
-
-// End of script
