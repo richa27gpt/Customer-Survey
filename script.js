@@ -27,7 +27,7 @@ const coinSheet = new Image(); coinSheet.src = "coin_spritesheet.png";
 // === Mario ===
 const mario = {
   x: 60, y: canvas.height - 100,
-  w: 32, h: 32, // smaller size
+  w: 24, h: 24, // forced smaller size
   vy: 0, onGround: true, speed: 3,
   anim: "idle", frameX: 0, frameY: 0, frameCount: 0
 };
@@ -39,7 +39,7 @@ const marioAnims = {
 
 // === Goombas ===
 let goombas = [
-  { x: 400, y: canvas.height - 60, w: 28, h: 28, dir: 1, spd: 1.2, frameX: 0, frameCount: 0 }
+  { x: 400, y: canvas.height - 60, w: 20, h: 20, dir: 1, spd: 1.2, frameX: 0, frameCount: 0 }
 ];
 const goombaAnim = { row: 0, frames: 2 };
 
@@ -67,7 +67,6 @@ function drawBackground() {
   const scale = canvas.height / bg.height;
   const drawW = bg.width * scale;
   const drawH = canvas.height;
-
   let startX = bgOffset % drawW;
   if (startX > 0) startX -= drawW;
   for (let x = startX; x < canvas.width; x += drawW) {
@@ -93,9 +92,8 @@ function updateMarioAnim() {
 function drawMario() {
   ctx.drawImage(
     marioSheet,
-    mario.frameX * mario.w, mario.frameY * mario.h,
-    mario.w, mario.h,
-    mario.x, mario.y, mario.w, mario.h
+    mario.frameX * 48, mario.frameY * 48, 48, 48, // source frame (always 48x48 in sheet)
+    mario.x, mario.y, mario.w, mario.h // scaled down to 24x24
   );
 }
 
@@ -116,9 +114,8 @@ function drawGoombas() {
   for (let g of goombas) {
     ctx.drawImage(
       goombaSheet,
-      g.frameX * g.w, 0,
-      g.w, g.h,
-      g.x, g.y, g.w, g.h
+      g.frameX * 40, 0, 40, 40, // source frame size 40x40
+      g.x, g.y, g.w, g.h        // scaled down to 20x20
     );
   }
 }
@@ -190,19 +187,20 @@ function gameLoop() {
   ctx.strokeText("Score: " + score, 20, 40);
   ctx.fillText("Score: " + score, 20, 40);
 
-  // Show current question
+  // === Draw Question & Answers ===
   if (!surveyDone && !showingPrompt) {
+    // Question text closer to ground
     ctx.font = "20px 'Comic Sans MS', sans-serif";
     ctx.lineWidth = 3;
     ctx.strokeStyle = "#000";
     ctx.fillStyle = "#FFD700"; // gold text
-    ctx.strokeText(questions[currentQ].text, 60, canvas.height - 220);
-    ctx.fillText(questions[currentQ].text, 60, canvas.height - 220);
+    ctx.strokeText(questions[currentQ].text, 60, canvas.height - 140);
+    ctx.fillText(questions[currentQ].text, 60, canvas.height - 140);
 
     if (questions[currentQ].type === "scale") {
       let count = questions[currentQ].scaleMax - questions[currentQ].scaleMin + 1;
       for (let i = 0; i < count; i++) {
-        let x = 100 + i * 80, y = canvas.height - 180;
+        let x = 100 + i * 80, y = canvas.height - 100;
         ctx.fillStyle = "#FFD700";
         ctx.fillRect(x, y, 60, 40);
         ctx.strokeStyle = "#000";
