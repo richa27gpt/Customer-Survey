@@ -492,94 +492,84 @@ function drawPlayer(x, y, w, h) {
   // face patch
   ctx.fillStyle = '#ffe6cf';
   ctx.fillRect(x + w * 0.18, y + 8, w * 0.64, 8);
+
+  // // eye movement: shift slightly upward when jumping (vy negative)
+  // const eyeBaseY = y + h * 0.42;
+  // const eyeYOffset = clamp(-mario.vy * 0.35, -4, 4); // vy negative -> positive up offset
+  // const eyeXOffset = clamp(mario.vy * 0.06, -2, 2); // small diagonal drift
+
+  // // eyes
+  // ctx.fillStyle = '#222';
+  // ctx.beginPath();
+  // ctx.arc(x + w * 0.36 + eyeXOffset, eyeBaseY + eyeYOffset, 2.2, 0, Math.PI * 2);
+  // ctx.arc(x + w * 0.64 - eyeXOffset, eyeBaseY + eyeYOffset - 0.6, 2.2, 0, Math.PI * 2);
+  // ctx.fill();
+// 
+  // mouth: small smile during survey, bigger laughing arc at end (and slightly open)
+//   if (surveyDone) {
+//     ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 1.4;
+//     ctx.beginPath();
+//     ctx.arc(x + w * 0.5, y + h * 0.62, 6, 0.12, Math.PI - 0.12);
+//     ctx.stroke();
+//     // tiny open mouth fill for laugh
+//     ctx.fillStyle = '#b33'; ctx.beginPath(); ctx.ellipse(x + w * 0.5, y + h * 0.62 + 6, 4, 2.6, 0, 0, Math.PI * 2); ctx.fill();
+//   } else {
+//     ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 1.2;
+//     ctx.beginPath(); ctx.moveTo(x + w * 0.42, y + h * 0.64); ctx.lineTo(x + w * 0.58, y + h * 0.64); ctx.stroke();
+//   }
+
+//   ctx.restore();
+// }
+
+// Eye movement: diagonal upward when jumping, diagonal downward when falling
+// Horizontal "velocity" from keys
+let vx = 0;
+if (keys["ArrowLeft"] || keys["a"]) vx = -1;
+if (keys["ArrowRight"] || keys["d"]) vx = 1;
+
+// Eye base position
+const eyeBaseY = y + h * 0.42;
+
+// Vertical offset (jump/fall)
+const eyeYOffset = clamp(-mario.vy * 0.35, -6, 6);
+
+// Horizontal offset (movement left/right)
+const eyeXOffset = clamp(vx * 4, -4, 4); // -4 left, +4 right
+
+// Eyes (pupils)
+ctx.fillStyle = '#222';
+ctx.beginPath();
+ctx.arc(x + w * 0.36 + eyeXOffset, eyeBaseY + eyeYOffset, 2.5, 0, Math.PI * 2);
+ctx.arc(x + w * 0.64 + eyeXOffset, eyeBaseY + eyeYOffset, 2.5, 0, Math.PI * 2);
+ctx.fill();
   
-// // mouth: small smile during survey, bigger laughing arc at end
-// if (surveyDone) {
-//   // Big laughing mouth
-//   ctx.strokeStyle = '#3b2a1a'; 
-//   ctx.lineWidth = 2;
-//   ctx.beginPath();
-//   // Larger arc for huge grin
-//   ctx.arc(x + w * 0.5, y + h * 0.65, 10, 0.1, Math.PI - 0.1);
-//   ctx.stroke();
-
-//   // Big open red mouth (ellipse)
-//   ctx.fillStyle = '#b33'; 
-//   ctx.beginPath(); 
-//   ctx.ellipse(x + w * 0.5, y + h * 0.70, 8, 5, 0, 0, Math.PI * 2); 
-//   ctx.fill();
-// } else {
-//   // Small smile (gentle curve)
-//   ctx.strokeStyle = '#3b2a1a'; 
-//   ctx.lineWidth = 1.2;
-//   ctx.beginPath();
-//   ctx.arc(x + w * 0.5, y + h * 0.64, 4, 0.15, Math.PI - 0.15); 
-//   ctx.stroke();
-// }
-
-// ctx.restore();
-// }
-
-if (mario.shocked) {
-  // 😲 Shocked face
-  ctx.fillStyle="#fff";
+// mouth: small smile during survey, bigger laughing arc at end
+if (surveyDone) {
+  // Big laughing mouth
+  ctx.strokeStyle = '#3b2a1a'; 
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.ellipse(x + w*0.36, y + h*0.42, 4, 5, 0, 0, Math.PI*2);
-  ctx.ellipse(x + w*0.64, y + h*0.42, 4, 5, 0, 0, Math.PI*2);
-  ctx.fill();
+  // Larger arc for huge grin
+  ctx.arc(x + w * 0.5, y + h * 0.65, 10, 0.1, Math.PI - 0.1);
+  ctx.stroke();
 
-  ctx.fillStyle="#222";
-  ctx.beginPath();
-  ctx.arc(x + w*0.36, y + h*0.42, 1.2, 0, Math.PI*2);
-  ctx.arc(x + w*0.64, y + h*0.42, 1.2, 0, Math.PI*2);
-  ctx.fill();
-
-  // round O mouth
-  ctx.fillStyle="#b33";
-  ctx.beginPath();
-  ctx.arc(x + w*0.5, y + h*0.68, 5, 0, Math.PI*2);
+  // Big open red mouth (ellipse)
+  ctx.fillStyle = '#b33'; 
+  ctx.beginPath(); 
+  ctx.ellipse(x + w * 0.5, y + h * 0.70, 8, 5, 0, 0, Math.PI * 2); 
   ctx.fill();
 } else {
-  // 👀 Normal eyes follow motion
-  let vx = 0;
-  if (keys["ArrowLeft"] || keys["a"]) vx = -1;
-  if (keys["ArrowRight"] || keys["d"]) vx = 1;
-
-  const eyeBaseY = y + h*0.42;
-  const eyeYOffset = clamp(-mario.vy*0.35, -6, 6);
-  const eyeXOffset = clamp(vx*4, -4, 4);
-
-  ctx.fillStyle="#222";
+  // Small smile (gentle curve)
+  ctx.strokeStyle = '#3b2a1a'; 
+  ctx.lineWidth = 1.2;
   ctx.beginPath();
-  ctx.arc(x + w*0.36 + eyeXOffset, eyeBaseY + eyeYOffset, 2.5, 0, Math.PI*2);
-  ctx.arc(x + w*0.64 + eyeXOffset, eyeBaseY + eyeYOffset, 2.5, 0, Math.PI*2);
-  ctx.fill();
+  ctx.arc(x + w * 0.5, y + h * 0.64, 4, 0.15, Math.PI - 0.15); 
+  ctx.stroke();
+}
 
-  // 😀 Mouth
-  if (surveyDone) {
-    ctx.strokeStyle="#3b2a1a";
-    ctx.lineWidth=2;
-    ctx.beginPath();
-    ctx.arc(x + w*0.5, y + h*0.65, 10, 0.1, Math.PI-0.1);
-    ctx.stroke();
-    ctx.fillStyle="#b33";
-    ctx.beginPath();
-    ctx.ellipse(x + w*0.5, y + h*0.70, 8, 5, 0, 0, Math.PI*2);
-    ctx.fill();
-  } else {
-    ctx.strokeStyle="#3b2a1a";
-    ctx.lineWidth=1.2;
-    ctx.beginPath();
-    ctx.arc(x + w*0.5, y + h*0.64, 4, 0.15, Math.PI-0.15);
-    ctx.stroke();
-  }
 ctx.restore();
 }
 
-// ⭐ Stars if shocked
-updateStars();
-drawStars();
-  
 // drawQuestionPanel (fixed top)
 function drawQuestionPanel() {
   const panelW = clamp(820, 320, W - 48);
