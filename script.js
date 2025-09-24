@@ -1,6 +1,5 @@
 // script.js - updated: single-submit guard disabled for testing (SINGLE_SUBMIT = false)
 // - Restores cute obstacles, strike-to-answer, anonymous POST on finish (best-effort)
-// - To re-enable single-run behavior later set SINGLE_SUBMIT = true
 
 // ---------- Configuration ----------
 const SINGLE_SUBMIT = false; // set to true to re-enable "only once per browser" (uses localStorage)
@@ -391,7 +390,9 @@ layoutAnswerBlocks();
     ctx.save();
     ctx.fillStyle = bl.color; ctx.beginPath(); ctx.ellipse(bl.x, bl.y, 14, 18, 0, 0, Math.PI * 2); ctx.fill();
     ctx.strokeStyle = '#ffffff22'; ctx.lineWidth = 1; ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(bl.x, bl.y + 18); ctx.lineTo(bl.x, bl.y + 34); ctx.strokeStyle = '#a7c9d8'; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bl.x, bl.y + 18);
+    ctx.lineTo(bl.x, bl.y + 34);
+    ctx.strokeStyle = '#a7c9d8'; ctx.stroke();
     ctx.restore();
   }
 
@@ -401,7 +402,10 @@ layoutAnswerBlocks();
 // ---------- Drawing helpers ----------
 function drawCloud(cx, cy, s = 1) {
   ctx.save(); ctx.globalAlpha = 0.95 * s; ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.ellipse(cx, cy, 32 * s, 20 * s, 0, 0, Math.PI * 2); ctx.ellipse(cx + 26 * s, cy + 6 * s, 22 * s, 14 * s, 0, 0, Math.PI * 2); ctx.ellipse(cx - 26 * s, cy + 6 * s, 22 * s, 14 * s, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(cx, cy, 32 * s, 20 * s, 0, 0, Math.PI * 2);
+  ctx.ellipse(cx + 26 * s, cy + 6 * s, 22 * s, 14 * s, 0, 0, Math.PI * 2);
+  ctx.ellipse(cx - 26 * s, cy + 6 * s, 22 * s, 14 * s, 0, 0, Math.PI * 2);
+  ctx.fill();
   ctx.restore();
 }
 function roundRect(ctx, x, y, w, h, r, fill, stroke) {
@@ -466,6 +470,3 @@ advanceQuestion = function () {
   originalAdvance();
   layoutAnswerBlocks();
 };
-
-// Accessibility: prompt handler wiring (submit handled inside showTextPrompt)
-// End of script
