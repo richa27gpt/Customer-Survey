@@ -573,6 +573,7 @@ if (mario.shocked) {
     ctx.arc(x + w*0.5, y + h*0.64, 4, 0.15, Math.PI-0.15);
     ctx.stroke();
   }
+ctx.restore();
 }
 
 // ⭐ Stars if shocked
