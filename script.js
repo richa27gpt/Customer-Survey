@@ -1,8 +1,10 @@
-// script.js - Cleaned, single-run survey game
-// - No spritesheets required: character and obstacles drawn procedurally
-// - Strike boxes from below to answer; clicking is supported
-// - End screen: thank-you + celebration only (no export, no replay)
-// - Survey can be taken only once per browser (localStorage key 'survey_completed')
+// script.js - updated: single-submit guard disabled for testing (SINGLE_SUBMIT = false)
+// - Restores cute obstacles, strike-to-answer, anonymous POST on finish (best-effort)
+// - To re-enable single-run behavior later set SINGLE_SUBMIT = true
+
+// ---------- Configuration ----------
+const SINGLE_SUBMIT = false; // set to true to re-enable "only once per browser" (uses localStorage)
+const LOCAL_KEY = 'survey_completed_v1';
 
 // ---------- QUESTIONS (full set from your script) ----------
 const questions = [
@@ -46,17 +48,16 @@ const promptInput = document.getElementById('promptInput');
 const promptSubmit = document.getElementById('promptSubmit');
 const endScreen = document.getElementById('endScreen');
 
-const LOCAL_KEY = 'survey_completed_v1';
-
 // ---------- Game entities (procedural visuals) ----------
 const gravity = 0.38;
 const mario = {
   x: 80, y: H - 28 - 36, w: 34, h: 36, vy: 0, onGround: true, speed: 2.4, color: '#e84c3d',
   bob: 0
 };
+// restored old "cute" round obstacles (Goomba-like)
 const goombas = [
-  { x: 390, y: H - 28 - 18, w: 18, h: 18, dir: 1, spd: 1.06 },
-  { x: 670, y: H - 28 - 18, w: 18, h: 18, dir: -1, spd: 0.96 }
+  { x: 390, y: H - 28 - 20, w: 22, h: 20, dir: 1, spd: 1.06, bob: 0 },
+  { x: 670, y: H - 28 - 20, w: 22, h: 20, dir: -1, spd: 0.96, bob: 0 }
 ];
 
 let answerBlocks = []; // suspended blocks
@@ -155,15 +156,55 @@ function showTextPrompt(qText, callback) {
   window.addEventListener('keypress', onEnter);
 }
 
+// ---------- Server submission (anonymous) ----------
+async function submitAnonymizedResults(payload) {
+  try {
+    // Default: same origin /api/submit
+    const resp = await fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!resp.ok) {
+      console.warn('Submission failed', resp.status);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.warn('Submission error', e);
+    return false;
+  }
+}
+
 // ---------- Finish: minimal end screen, no export/no replay ----------
 function finishSurvey() {
   surveyDone = true;
-  // record that survey completed (persist single-run)
-  try { localStorage.setItem(LOCAL_KEY, '1'); } catch (e) { /* ignore */ }
-  // show thank-you and celebration
-  document.getElementById('openPrompt').classList.add('hidden');
-  endScreen.classList.remove('hidden');
-  spawnCelebration();
+  // optionally record single-run on client side (only if SINGLE_SUBMIT is true)
+  if (SINGLE_SUBMIT) {
+    try { localStorage.setItem(LOCAL_KEY, '1'); } catch (e) { /* ignore */ }
+  }
+
+  // Build anonymized payload: answers + timestamp + minimal non-PII metadata
+  const payload = {
+    timestamp: new Date().toISOString(),
+    answers: answers.slice(), // array of answers in order
+    metadata: {
+      ua: navigator.userAgent ? navigator.userAgent.split(')')[0] + ')' : '',
+      screen: { w: window.screen.width, h: window.screen.height },
+      clientTime: new Date().toISOString()
+    }
+  };
+
+  // Try to submit (best-effort); do not expose the results to user
+  submitAnonymizedResults(payload).then(success => {
+    document.getElementById('openPrompt').classList.add('hidden');
+    endScreen.classList.remove('hidden');
+    spawnCelebration();
+  }).catch(() => {
+    document.getElementById('openPrompt').classList.add('hidden');
+    endScreen.classList.remove('hidden');
+    spawnCelebration();
+  });
 }
 
 // ---------- Celebration (balloons & small fireworks) ----------
@@ -201,9 +242,9 @@ function createFirework(x, y) {
 layoutAnswerBlocks();
 
 (function mainLoop() {
-  // Prevent playing if already completed
-  if (localStorage.getItem(LOCAL_KEY) === '1' && !surveyDone) {
-    // show end-screen notice that survey already completed
+  // SINGLE_SUBMIT guard is disabled by default for testing.
+  if (SINGLE_SUBMIT && localStorage.getItem(LOCAL_KEY) === '1' && !surveyDone) {
+    // If re-enabled, show already-completed message and celebration
     surveyDone = true;
     endScreen.classList.remove('hidden');
     document.querySelector('#endScreen .end-note').textContent = 'You have already completed this survey. Thank you.';
@@ -243,10 +284,13 @@ layoutAnswerBlocks();
       mario.y = H - 28 - mario.h; mario.vy = 0; mario.onGround = true;
     } else mario.onGround = false;
 
-    // goombas motion & collision
+    // goombas motion & collision (restored cute obstacles)
     for (let g of goombas) {
       g.x += g.dir * g.spd;
       if (g.x <= 12 || g.x + g.w >= W - 12) g.dir *= -1;
+      // bob animation
+      g.bob += 0.04;
+      // collision resets Mario to start
       if (rectsCollide(mario, g)) {
         mario.x = 80; mario.y = H - 28 - mario.h; mario.vy = 0; mario.onGround = true;
       }
@@ -317,10 +361,18 @@ layoutAnswerBlocks();
     ctx.restore();
   }
 
-  // goombas
+  // draw cute obstacles (restored)
   for (const g of goombas) {
-    ctx.fillStyle = '#8d5524'; ctx.beginPath(); ctx.ellipse(g.x + g.w / 2, g.y + g.h / 2, g.w / 2, g.h / 2, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(g.x + g.w / 2 - 4, g.y + g.h / 2 - 6, 2.5, 0, Math.PI * 2); ctx.arc(g.x + g.w / 2 + 4, g.y + g.h / 2 - 6, 2.5, 0, Math.PI * 2); ctx.fill();
+    const bob = Math.sin(g.bob) * 2;
+    const gx = g.x, gy = g.y + bob;
+    // body
+    ctx.fillStyle = '#8d5524'; ctx.beginPath(); ctx.ellipse(gx + g.w / 2, gy + g.h / 2, g.w / 2, g.h / 2, 0, 0, Math.PI * 2); ctx.fill();
+    // eye whites
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(gx + g.w / 2 - 4, gy + g.h / 2 - 6, 2.6, 0, Math.PI * 2); ctx.arc(gx + g.w / 2 + 4, gy + g.h / 2 - 6, 2.6, 0, Math.PI * 2); ctx.fill();
+    // pupils
+    ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(gx + g.w / 2 - 4, gy + g.h / 2 - 6, 1.1, 0, Math.PI * 2); ctx.arc(gx + g.w / 2 + 4, gy + g.h / 2 - 6, 1.1, 0, Math.PI * 2); ctx.fill();
+    // small smile
+    ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(gx + g.w / 2, gy + g.h / 2 + 1, 5, 0.1, Math.PI - 0.1); ctx.stroke();
   }
 
   // mario (simple friendly character)
