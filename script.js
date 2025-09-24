@@ -64,9 +64,16 @@ document.addEventListener("keyup", e => keys[e.key] = false);
 let bgOffset = 0;
 function drawBackground() {
   bgOffset = -mario.x * 0.3;
-  const bgW = canvas.width, bgH = canvas.height;
-  ctx.drawImage(bg, bgOffset % bgW, 0, bgW, bgH);
-  ctx.drawImage(bg, (bgOffset % bgW) + bgW, 0, bgW, bgH);
+  const scale = canvas.height / bg.height;
+  const drawW = bg.width * scale;
+  const drawH = canvas.height;
+
+  // Tile across width
+  let startX = bgOffset % drawW;
+  if (startX > 0) startX -= drawW;
+  for (let x = startX; x < canvas.width; x += drawW) {
+    ctx.drawImage(bg, x, 0, drawW, drawH);
+  }
 }
 
 // === Mario Animation ===
@@ -85,7 +92,6 @@ function updateMarioAnim() {
   mario.frameY = anim.row;
 }
 function drawMario() {
-  let anim = marioAnims[mario.anim];
   ctx.drawImage(
     marioSheet,
     mario.frameX * mario.w, mario.frameY * mario.h,
@@ -167,7 +173,7 @@ function gameLoop() {
   updateGoombas();
   updateCoins();
 
-  // Draw
+  // Draw everything
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawBackground();
   ctx.fillStyle = "#6a4";
@@ -182,7 +188,7 @@ function gameLoop() {
   ctx.font = "20px Arial";
   ctx.fillText("Score: " + score, 20, 30);
 
-  // Show question
+  // Show current question
   if (!surveyDone && !showingPrompt) {
     ctx.fillStyle = "#fff";
     ctx.font = "22px Arial";
@@ -208,7 +214,7 @@ function gameLoop() {
     } else if (questions[currentQ].type === "text") {
       showPrompt(questions[currentQ].text, (resp) => {
         surveyAnswers.push(resp);
-        score += 10; // reward for text answer
+        score += 10;
         currentQ++;
         if (currentQ >= questions.length) finishSurvey();
       });
@@ -217,13 +223,12 @@ function gameLoop() {
 
   requestAnimationFrame(gameLoop);
 }
-requestAnimationFrame(gameLoop);
 
 // === Submit Answer ===
 function submitAnswer(val, coinX, coinY) {
   surveyAnswers.push(val);
   score += 10;
-  spawnCoin(coinX, coinY); // spawn coin when answered
+  spawnCoin(coinX, coinY);
   currentQ++;
   if (currentQ >= questions.length) finishSurvey();
   else {
@@ -258,3 +263,8 @@ function finishSurvey() {
   ).join("\n") + `\nFinal Score: ${score}`;
   showingAnswers = true;
 }
+
+// === Start only when background is loaded ===
+bg.onload = () => {
+  requestAnimationFrame(gameLoop);
+};
