@@ -55,3 +55,8 @@ canvas#gameCanvas{
   #openPrompt{width:92%;left:50%;transform:translateX(-50%);top:80px}
   #endScreen{width:92%;left:50%;transform:translateX(-50%);top:80px}
 }
+
+/* Admin page tweaks (when opened) */
+.admin-wrap{max-width:980px;margin:18px auto;padding:18px;background:#fff;border-radius:10px;border:1px solid #e3f2fd}
+.admin-actions{display:flex;gap:8px;align-items:center}
+.admin-stats{display:flex;flex-direction:column;gap:12px;margin-top:12px}
