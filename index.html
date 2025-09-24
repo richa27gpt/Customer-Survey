@@ -1,27 +1,35 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Mario Survey Game — Hit Boxes to Answer</title>
+  <title>Survey Jump — Gameified Customer Survey</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <canvas id="gameCanvas" width="920" height="440"></canvas>
+  <canvas id="gameCanvas" width="980" height="520" aria-label="Survey game canvas"></canvas>
 
-  <!-- Open-ended modal (DOM only for text responses) -->
+  <!-- Open-ended modal (DOM for text responses) -->
   <div id="openPrompt" class="hidden" role="dialog" aria-modal="true">
-    <div id="promptTitle"></div>
+    <div id="promptTitle" class="prompt-title"></div>
     <input id="promptInput" type="text" placeholder="Type your answer..." />
     <div class="prompt-actions">
       <button id="promptSubmit">Submit</button>
     </div>
   </div>
 
-  <!-- Final results -->
-  <div id="thankYou" class="hidden" aria-live="polite">
+  <!-- End screen -->
+  <div id="endScreen" class="hidden" role="dialog" aria-live="polite">
     <h2>Thank you — survey complete!</h2>
-    <pre id="resultsOut"></pre>
+    <div id="endVisual"></div>
+    <div id="summaryCard">
+      <h3>Your responses</h3>
+      <div id="summaryList"></div>
+      <div class="end-actions">
+        <button id="downloadJson">Download JSON</button>
+        <button id="restartBtn">Play again</button>
+      </div>
+    </div>
   </div>
 
   <script src="script.js"></script>
