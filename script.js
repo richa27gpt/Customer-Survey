@@ -506,19 +506,44 @@ function drawPlayer(x, y, w, h) {
   ctx.fill();
 
   // mouth: small smile during survey, bigger laughing arc at end (and slightly open)
-  if (surveyDone) {
-    ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.arc(x + w * 0.5, y + h * 0.62, 6, 0.12, Math.PI - 0.12);
-    ctx.stroke();
-    // tiny open mouth fill for laugh
-    ctx.fillStyle = '#b33'; ctx.beginPath(); ctx.ellipse(x + w * 0.5, y + h * 0.62 + 6, 4, 2.6, 0, 0, Math.PI * 2); ctx.fill();
-  } else {
-    ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 1.2;
-    ctx.beginPath(); ctx.moveTo(x + w * 0.42, y + h * 0.64); ctx.lineTo(x + w * 0.58, y + h * 0.64); ctx.stroke();
-  }
+//   if (surveyDone) {
+//     ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 1.4;
+//     ctx.beginPath();
+//     ctx.arc(x + w * 0.5, y + h * 0.62, 6, 0.12, Math.PI - 0.12);
+//     ctx.stroke();
+//     // tiny open mouth fill for laugh
+//     ctx.fillStyle = '#b33'; ctx.beginPath(); ctx.ellipse(x + w * 0.5, y + h * 0.62 + 6, 4, 2.6, 0, 0, Math.PI * 2); ctx.fill();
+//   } else {
+//     ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 1.2;
+//     ctx.beginPath(); ctx.moveTo(x + w * 0.42, y + h * 0.64); ctx.lineTo(x + w * 0.58, y + h * 0.64); ctx.stroke();
+//   }
 
-  ctx.restore();
+//   ctx.restore();
+// }
+// mouth: small smile during survey, bigger laughing arc at end
+if (surveyDone) {
+  // Big laughing mouth
+  ctx.strokeStyle = '#3b2a1a'; 
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.arc(x + w * 0.5, y + h * 0.62, 6, 0.12, Math.PI - 0.12);
+  ctx.stroke();
+
+  // tiny open mouth fill for laugh
+  ctx.fillStyle = '#b33'; 
+  ctx.beginPath(); 
+  ctx.ellipse(x + w * 0.5, y + h * 0.62 + 6, 4, 2.6, 0, 0, Math.PI * 2); 
+  ctx.fill();
+} else {
+  // Small smile (gentle curve)
+  ctx.strokeStyle = '#3b2a1a'; 
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.arc(x + w * 0.5, y + h * 0.64, 4, 0.15, Math.PI - 0.15); 
+  ctx.stroke();
+}
+
+ctx.restore();
 }
 
 // drawQuestionPanel (fixed top)
