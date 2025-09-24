@@ -553,17 +553,10 @@ if (surveyDone) {
   ctx.stroke();
 
   // Big open red mouth (ellipse)
-  // ctx.fillStyle = '#b33'; 
-  // ctx.beginPath(); 
-  // ctx.ellipse(x + w * 0.5, y + h * 0.70, 8, 5, 0, 0, Math.PI * 2); 
-  // ctx.fill();
-  ctx.strokeStyle = '#3b2a1a'; 
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  // Larger arc for huge grin
-  ctx.arc(x + w * 0.5, y + h * 0.65, 10, 0.1, Math.PI - 0.1);
-  ctx.stroke();
-  
+  ctx.fillStyle = '#b33'; 
+  ctx.beginPath(); 
+  ctx.ellipse(x + w * 0.5, y + h * 0.70, 8, 5, 0, 0, Math.PI * 2); 
+  ctx.fill();
 } else {
   // Small smile (gentle curve)
   ctx.strokeStyle = '#3b2a1a'; 
