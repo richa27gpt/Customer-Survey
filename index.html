@@ -2,20 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Mario Customer Survey Game</title>
+    <title>Mario Survey Game</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Mario Customer Survey Game</h1>
-    <canvas id="gameCanvas" width="900" height="400"></canvas>
-    <div id="gamePrompt" class="hidden">
-        <div id="promptText"></div>
-        <input type="text" id="promptInput" />
-        <button id="promptBtn">Submit</button>
+    <canvas id="gameCanvas" width="920" height="420"></canvas>
+    <div id="openEndedPrompt" class="hidden">
+        <div id="promptQuestion"></div>
+        <input type="text" id="promptInput" placeholder="Type your answer..."/>
+        <button id="promptSubmit">Submit</button>
     </div>
-    <div id="thankyou" class="hidden">
-        <h2>Thank you for playing and completing the survey!</h2>
-        <pre id="answers"></pre>
+    <div id="thankYou" class="hidden">
+        <h2>Thank You for Completing the Survey!</h2>
+        <pre id="surveyResult"></pre>
     </div>
     <script src="script.js"></script>
 </body>
