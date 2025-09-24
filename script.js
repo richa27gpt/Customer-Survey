@@ -522,34 +522,41 @@ function drawPlayer(x, y, w, h) {
 // }
 
 // Eye movement: diagonal upward when jumping, diagonal downward when falling
+// Horizontal "velocity" from keys
+let vx = 0;
+if (keys["ArrowLeft"] || keys["a"]) vx = -1;
+if (keys["ArrowRight"] || keys["d"]) vx = 1;
+
+// Eye base position
 const eyeBaseY = y + h * 0.42;
 
-// Vertical offset: stronger shift when jumping
-const eyeYOffset = clamp(-mario.vy * 0.25, -5, 3);
+// Vertical offset (jump/fall)
+const eyeYOffset = clamp(-mario.vy * 0.35, -6, 6);
 
-// Horizontal offset: slight inward when going up, outward when falling
-const eyeXOffset = clamp(-mario.vy * 0.08, -3, 3);
+// Horizontal offset (movement left/right)
+const eyeXOffset = clamp(vx * 4, -4, 4); // -4 left, +4 right
 
-// Eyes (black pupils)
+// Eyes (pupils)
 ctx.fillStyle = '#222';
 ctx.beginPath();
-ctx.arc(x + w * 0.36 + eyeXOffset, eyeBaseY + eyeYOffset, 2.2, 0, Math.PI * 2);
-ctx.arc(x + w * 0.64 - eyeXOffset, eyeBaseY + eyeYOffset, 2.2, 0, Math.PI * 2);
+ctx.arc(x + w * 0.36 + eyeXOffset, eyeBaseY + eyeYOffset, 2.5, 0, Math.PI * 2);
+ctx.arc(x + w * 0.64 + eyeXOffset, eyeBaseY + eyeYOffset, 2.5, 0, Math.PI * 2);
 ctx.fill();
   
 // mouth: small smile during survey, bigger laughing arc at end
 if (surveyDone) {
   // Big laughing mouth
   ctx.strokeStyle = '#3b2a1a'; 
-  ctx.lineWidth = 1.4;
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.arc(x + w * 0.5, y + h * 0.62, 6, 0.12, Math.PI - 0.12);
+  // Larger arc for huge grin
+  ctx.arc(x + w * 0.5, y + h * 0.65, 10, 0.1, Math.PI - 0.1);
   ctx.stroke();
 
-  // tiny open mouth fill for laugh
+  // Big open red mouth (ellipse)
   ctx.fillStyle = '#b33'; 
   ctx.beginPath(); 
-  ctx.ellipse(x + w * 0.5, y + h * 0.62 + 6, 4, 2.6, 0, 0, Math.PI * 2); 
+  ctx.ellipse(x + w * 0.5, y + h * 0.70, 8, 5, 0, 0, Math.PI * 2); 
   ctx.fill();
 } else {
   // Small smile (gentle curve)
