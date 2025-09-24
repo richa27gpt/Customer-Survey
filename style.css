@@ -5,6 +5,7 @@
   --muted:#7ea6c9;
   --ground:#3fa34a;
   --block:#ffd35c;
+  --block-border:#b48c19;
   --text:#0e3a57;
 }
 *{box-sizing:border-box}
@@ -13,12 +14,12 @@ canvas#gameCanvas{
   display:block;
   margin:26px auto;
   width:94%;
-  max-width:980px;
+  max-width:960px;
   height:auto;
-  border-radius:14px;
+  border-radius:12px;
   border:3px solid rgba(30,136,229,0.12);
-  box-shadow:0 20px 40px rgba(30,136,229,0.08);
-  background: linear-gradient(to top, #cdeefd 68%, #fff 100%);
+  box-shadow:0 18px 36px rgba(30,136,229,0.08);
+  background: linear-gradient(to top, #dff6ff 66%, #fff 100%);
 }
 
 /* Modal prompt */
@@ -27,36 +28,30 @@ canvas#gameCanvas{
   left:50%;
   transform:translateX(-50%);
   min-width:360px;
-  max-width:760px;
+  max-width:720px;
   padding:18px 20px;
   border-radius:12px;
   background:var(--panel);
   border:2px solid rgba(100,181,246,0.9);
-  box-shadow:0 14px 44px rgba(30,136,229,0.12);
+  box-shadow:0 14px 36px rgba(30,136,229,0.12);
   color:var(--text);
   z-index:20;
 }
-#openPrompt{top:90px}
+#openPrompt{top:88px}
 #openPrompt.hidden,#endScreen.hidden{display:none}
 .prompt-title{font-weight:700;color:var(--accent);margin-bottom:10px}
 #promptInput{width:100%;padding:10px 12px;border-radius:8px;border:1px solid #d7f1ff;font-size:15px}
 .prompt-actions{text-align:right;margin-top:12px}
 #promptSubmit{background:var(--accent);color:white;padding:9px 14px;border-radius:8px;border:none;cursor:pointer;font-weight:600}
 
-/* End screen layout */
-#endScreen{top:80px;padding:22px;display:flex;flex-direction:row;gap:18px;align-items:flex-start}
-#endVisual{width:46%;min-height:200px;position:relative}
-#summaryCard{width:50%;background:linear-gradient(180deg,#ffffff,#f6fbff);padding:12px;border-radius:10px;border:1px solid rgba(25,118,210,0.06)}
-#summaryList{max-height:320px;overflow:auto;padding:8px}
-.summaryItem{padding:8px;border-bottom:1px dashed #e6f3ff}
-.end-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
-#downloadJson,#restartBtn{padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
-#downloadJson{background:#ffd35c}
-#restartBtn{background:var(--accent);color:#fff}
+/* End screen */
+#endScreen{top:86px;padding:22px;text-align:left}
+#endScreen h2{color:var(--accent);margin:0 0 10px 0}
+#endScreen .end-note{color:#21507c;margin:6px 0 12px 0}
 
-/* small screens */
-@media (max-width:900px){
-  #endScreen{flex-direction:column;left:50%;top:80px;transform:translateX(-50%);width:92%}
-  #endVisual,#summaryCard{width:100%}
+/* Responsive */
+@media (max-width:860px){
   canvas#gameCanvas{width:96%}
+  #openPrompt{width:92%;left:50%;transform:translateX(-50%);top:80px}
+  #endScreen{width:92%;left:50%;transform:translateX(-50%);top:80px}
 }
