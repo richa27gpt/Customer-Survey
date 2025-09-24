@@ -18,18 +18,38 @@ function resizeCanvas() {
   canvas.height = window.innerHeight;
 }
 
-// === Sprites ===
-const bg = new Image(); bg.src = "bg.png";       // background
-const marioImg = new Image(); marioImg.src = "mario.png";
-const goombaImg = new Image(); goombaImg.src = "goomba.png";
+// === Load Sprites ===
+const bg = new Image(); bg.src = "bg.png";
+const marioSheet = new Image(); marioSheet.src = "mario_spritesheet.png";
+const goombaSheet = new Image(); goombaSheet.src = "goomba_spritesheet.png";
+const coinSheet = new Image(); coinSheet.src = "coin_spritesheet.png";
 
 // === Mario ===
-const mario = { x: 60, y: canvas.height - 100, w: 40, h: 50, vy: 0, onGround: true, speed: 3 };
+const mario = {
+  x: 60, y: canvas.height - 100,
+  w: 48, h: 48,
+  vy: 0, onGround: true, speed: 3,
+  anim: "idle", frameX: 0, frameY: 0, frameCount: 0
+};
+const marioAnims = {
+  idle: { row: 0, frames: 4 },
+  walk: { row: 1, frames: 6 },
+  jump: { row: 2, frames: 2 }
+};
 
 // === Goombas ===
-let goombas = [{ x: 400, y: canvas.height - 60, w: 40, h: 40, dir: 1, spd: 1.2 }];
+let goombas = [
+  { x: 400, y: canvas.height - 60, w: 40, h: 40, dir: 1, spd: 1.2, frameX: 0, frameCount: 0 }
+];
+const goombaAnim = { row: 0, frames: 2 };
 
-// === Survey ===
+// === Coins / Score ===
+let coins = [];
+let score = 0;
+const coinAnim = { row: 0, frames: 4 };
+let coinFrame = 0, coinFrameCount = 0;
+
+// === Survey State ===
 let currentQ = 0;
 let surveyAnswers = [];
 let surveyDone = false;
@@ -40,13 +60,86 @@ let keys = {};
 document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
 
-// === Background Scroll ===
+// === Background ===
 let bgOffset = 0;
 function drawBackground() {
   bgOffset = -mario.x * 0.3;
   const bgW = canvas.width, bgH = canvas.height;
   ctx.drawImage(bg, bgOffset % bgW, 0, bgW, bgH);
   ctx.drawImage(bg, (bgOffset % bgW) + bgW, 0, bgW, bgH);
+}
+
+// === Mario Animation ===
+function updateMarioAnim() {
+  if (!mario.onGround) mario.anim = "jump";
+  else if (keys["ArrowLeft"] || keys["ArrowRight"] || keys["a"] || keys["d"])
+    mario.anim = "walk";
+  else mario.anim = "idle";
+
+  let anim = marioAnims[mario.anim];
+  mario.frameCount++;
+  if (mario.frameCount > 8) {
+    mario.frameCount = 0;
+    mario.frameX = (mario.frameX + 1) % anim.frames;
+  }
+  mario.frameY = anim.row;
+}
+function drawMario() {
+  let anim = marioAnims[mario.anim];
+  ctx.drawImage(
+    marioSheet,
+    mario.frameX * mario.w, mario.frameY * mario.h,
+    mario.w, mario.h,
+    mario.x, mario.y, mario.w, mario.h
+  );
+}
+
+// === Goomba Animation ===
+function updateGoombas() {
+  for (let g of goombas) {
+    g.x += g.dir * g.spd;
+    if (g.x <= 0 || g.x + g.w >= canvas.width) g.dir *= -1;
+
+    g.frameCount++;
+    if (g.frameCount > 20) {
+      g.frameCount = 0;
+      g.frameX = (g.frameX + 1) % goombaAnim.frames;
+    }
+  }
+}
+function drawGoombas() {
+  for (let g of goombas) {
+    ctx.drawImage(
+      goombaSheet,
+      g.frameX * g.w, 0,
+      g.w, g.h,
+      g.x, g.y, g.w, g.h
+    );
+  }
+}
+
+// === Coins ===
+function spawnCoin(x, y) {
+  coins.push({ x, y, w: 32, h: 32, collected: false });
+}
+function updateCoins() {
+  coinFrameCount++;
+  if (coinFrameCount > 10) {
+    coinFrameCount = 0;
+    coinFrame = (coinFrame + 1) % coinAnim.frames;
+  }
+}
+function drawCoins() {
+  for (let c of coins) {
+    if (!c.collected) {
+      ctx.drawImage(
+        coinSheet,
+        coinFrame * c.w, 0,
+        c.w, c.h,
+        c.x, c.y, c.w, c.h
+      );
+    }
+  }
 }
 
 // === Game Loop ===
@@ -61,7 +154,7 @@ function gameLoop() {
     }
 
     mario.x = Math.max(0, Math.min(canvas.width - mario.w, mario.x));
-    mario.vy += 0.5; 
+    mario.vy += 0.5;
     mario.y += mario.vy;
     if (mario.y + mario.h >= canvas.height - 40) {
       mario.y = canvas.height - 40 - mario.h;
@@ -70,21 +163,26 @@ function gameLoop() {
     }
   }
 
-  // === Draw ===
+  updateMarioAnim();
+  updateGoombas();
+  updateCoins();
+
+  // Draw
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawBackground();
-
-  // Ground
   ctx.fillStyle = "#6a4";
   ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
 
-  // Mario
-  ctx.drawImage(marioImg, mario.x, mario.y, mario.w, mario.h);
+  drawMario();
+  drawGoombas();
+  drawCoins();
 
-  // Goombas
-  for (let g of goombas) ctx.drawImage(goombaImg, g.x, g.y, g.w, g.h);
+  // HUD
+  ctx.fillStyle = "#fff";
+  ctx.font = "20px Arial";
+  ctx.fillText("Score: " + score, 20, 30);
 
-  // Current Question
+  // Show question
   if (!surveyDone && !showingPrompt) {
     ctx.fillStyle = "#fff";
     ctx.font = "22px Arial";
@@ -104,12 +202,13 @@ function gameLoop() {
           ctx.strokeStyle = "#f00";
           ctx.lineWidth = 3;
           ctx.strokeRect(x - 2, y - 2, 64, 44);
-          if (keys[" "]) submitAnswer(i + 1);
+          if (keys[" "]) submitAnswer(i + 1, x, y - 40);
         }
       }
     } else if (questions[currentQ].type === "text") {
       showPrompt(questions[currentQ].text, (resp) => {
         surveyAnswers.push(resp);
+        score += 10; // reward for text answer
         currentQ++;
         if (currentQ >= questions.length) finishSurvey();
       });
@@ -121,8 +220,10 @@ function gameLoop() {
 requestAnimationFrame(gameLoop);
 
 // === Submit Answer ===
-function submitAnswer(val) {
+function submitAnswer(val, coinX, coinY) {
   surveyAnswers.push(val);
+  score += 10;
+  spawnCoin(coinX, coinY); // spawn coin when answered
   currentQ++;
   if (currentQ >= questions.length) finishSurvey();
   else {
@@ -131,7 +232,7 @@ function submitAnswer(val) {
   }
 }
 
-// === Prompt for text ===
+// === Prompt for Text ===
 function showPrompt(text, cb) {
   showingPrompt = true;
   const gp = document.getElementById("gamePrompt");
@@ -154,6 +255,6 @@ function finishSurvey() {
   document.getElementById("thankyou").classList.remove("hidden");
   document.getElementById("answers").textContent = questions.map((q,i)=>
     `${i+1}. [${q.section}] ${q.text}\nResponse: ${surveyAnswers[i]}\n`
-  ).join("\n");
+  ).join("\n") + `\nFinal Score: ${score}`;
   showingAnswers = true;
 }
