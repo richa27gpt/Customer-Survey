@@ -1,21 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Mario Survey Game</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <title>Mario Survey Game</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <canvas id="gameCanvas" width="920" height="420"></canvas>
-    <div id="openEndedPrompt" class="hidden">
-        <div id="promptQuestion"></div>
-        <input type="text" id="promptInput" placeholder="Type your answer..."/>
-        <button id="promptSubmit">Submit</button>
+  <canvas id="gameCanvas" width="920" height="440"></canvas>
+
+  <!-- Open-ended modal (DOM only for text responses) -->
+  <div id="openPrompt" class="hidden">
+    <div id="promptTitle"></div>
+    <input id="promptInput" type="text" placeholder="Type your answer..." />
+    <div class="prompt-actions">
+      <button id="promptSubmit">Submit</button>
     </div>
-    <div id="thankYou" class="hidden">
-        <h2>Thank You for Completing the Survey!</h2>
-        <pre id="surveyResult"></pre>
-    </div>
-    <script src="script.js"></script>
+  </div>
+
+  <!-- Final results -->
+  <div id="thankYou" class="hidden">
+    <h2>Thank you — survey complete!</h2>
+    <pre id="resultsOut"></pre>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
