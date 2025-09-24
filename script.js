@@ -268,3 +268,107 @@ function finishSurvey() {
 bg.onload = () => {
   requestAnimationFrame(gameLoop);
 };
+
+function gameLoop() {
+    // ...[physics & movement code as before]...
+
+    ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+    // Draw ground
+    ctx.fillStyle = "#6ab04c";
+    ctx.fillRect(0, HEIGHT-28, WIDTH, 28);
+
+    // Draw Mario (small)
+    ctx.save();
+    ctx.translate(mario.x + mario.w/2, mario.y + mario.h/2);
+    ctx.fillStyle = mario.color;
+    ctx.fillRect(-mario.w/2, -mario.h/2, mario.w, mario.h);
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(-mario.w/4, -mario.h/2+5, mario.w/2, mario.h/6);
+    ctx.restore();
+
+    // Draw Goombas (small)
+    for(let g of goombas) {
+        ctx.fillStyle = "#a52a2a";
+        ctx.beginPath();
+        ctx.ellipse(g.x+g.w/2, g.y+g.h-4, 9, 8, 0, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.arc(g.x+g.w/2-4, g.y+g.h-9, 2.6, 0, Math.PI*2);
+        ctx.arc(g.x+g.w/2+4, g.y+g.h-9, 2.6, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = "#000";
+        ctx.beginPath();
+        ctx.arc(g.x+g.w/2-4, g.y+g.h-9, 1.1, 0, Math.PI*2);
+        ctx.arc(g.x+g.w/2+4, g.y+g.h-9, 1.1, 0, Math.PI*2);
+        ctx.fill();
+    }
+
+    // === Draw the survey panel above Mario ===
+    if (!surveyDone && !showingPrompt && !showingAnswers) {
+        // Panel position: center horizontally above Mario, clamp to canvas bounds
+        let panelWidth = 360, panelHeight = 100;
+        let panelX = Math.max(10, Math.min(mario.x + mario.w/2 - panelWidth/2, WIDTH - panelWidth - 10));
+        let panelY = Math.max(20, mario.y - panelHeight - 18);
+
+        // Draw panel
+        ctx.save();
+        ctx.shadowColor = "#64a9f3";
+        ctx.shadowBlur = 12;
+        ctx.globalAlpha = 0.97;
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
+        ctx.restore();
+        ctx.strokeStyle = "#64a9f3";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(panelX, panelY, panelWidth, panelHeight);
+
+        // Draw question text
+        ctx.fillStyle = "#21507c";
+        ctx.font = "19px 'Segoe UI', Arial, sans-serif";
+        wrapText(ctx, questions[currentQ].text, panelX+18, panelY+32, panelWidth-36, 23);
+
+        // Draw answer blocks for scale questions
+        if (questions[currentQ].type === "scale") {
+            let q = questions[currentQ];
+            let count = q.scaleMax - q.scaleMin + 1;
+            let totalW = count*40 + (count-1)*18;
+            let startX = panelX + panelWidth/2 - totalW/2;
+            let y = panelY + 58;
+            for(let i=0; i<count; ++i) {
+                let bx = startX + i*58, bw = 40, bh = 32;
+                ctx.fillStyle = "#ffd35c";
+                ctx.strokeStyle = "#b48c19";
+                ctx.lineWidth = 2;
+                ctx.fillRect(bx, y, bw, bh);
+                ctx.strokeRect(bx, y, bw, bh);
+                ctx.fillStyle = "#444";
+                ctx.font = "18px Arial";
+                ctx.fillText(""+(i+q.scaleMin), bx+14, y+22);
+
+                // Label (optional)
+                if (q.scaleLabels[i]) {
+                    ctx.font = "11px Arial";
+                    ctx.fillStyle = "#888";
+                    ctx.fillText(q.scaleLabels[i], bx-8, y-7);
+                }
+
+                // Highlight if Mario is on this answer block
+                if (
+                    mario.y+mario.h > y && mario.y < y+bh &&
+                    mario.x+mario.w > bx && mario.x < bx+bw
+                ) {
+                    ctx.strokeStyle = "#21507c";
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(bx-2, y-2, bw+4, bh+4);
+                    if (mario.onGround && keys[" "]) {
+                        submitScaleAnswer(i+q.scaleMin);
+                    }
+                }
+            }
+        }
+    }
+
+    requestAnimationFrame(gameLoop);
+}
