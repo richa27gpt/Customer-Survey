@@ -1,0 +1,169 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Survey Admin — Aggregated Responses</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="admin-wrap" role="main">
+    <h2>Survey — Aggregated Responses</h2>
+    <div class="admin-actions">
+      <button id="reloadBtn">Reload local responses</button>
+      <button id="exportCsv">Export CSV</button>
+      <button id="clearLocal">Clear Local Backup</button>
+      <div style="margin-left:auto;color:#4a6b82">Total responses: <span id="totalCount">0</span></div>
+    </div>
+
+    <div id="analysis" class="admin-stats" aria-live="polite"></div>
+  </div>
+
+  <script>
+    // Reuse the same questions array shape as the main app (order matters)
+    const questions = [
+      { section: "Leadership", text: "How would you rate the overall vision and strategic direction provided by XYZ’s leadership?", type: "scale", scale: 5 },
+      { section: "Leadership", text: "To what extent do you feel XYZ’s leadership is aligned with your organization’s goals and priorities?", type: "scale", scale: 5 },
+      { section: "Leadership", text: "Over the past year, what specific improvements or changes in XYZ’s leadership have you noticed?", type: "text" },
+      { section: "Leadership", text: "Looking forward, what do XYZ’s leadership need to improve to support you better?", type: "text" },
+
+      { section: "Account Management", text: "How satisfied are you with the responsiveness and engagement of your account manager?", type: "scale", scale: 5 },
+      { section: "Account Management", text: "Has your account manager changed this year? If Yes, to what extent has this change affected your experience of XYZ (1 = Much Worse, 5 = Much Better)?", type: "scale", scale: 5 },
+      { section: "Account Management", text: "To what extent do you feel your account manager is aligned with your organization’s goals and priorities?", type: "scale", scale: 5 },
+      { section: "Account Management", text: "What additional steps could your account manager take to improve responsiveness, engagement, or alignment with your organization?", type: "text" },
+
+      { section: "Service Delivery", text: "How would you rate the overall quality of service delivery provided by XYZ?", type: "scale", scale: 5 },
+      { section: "Service Delivery", text: "How satisfied are you with XYZ’s response times to your requests or issues?", type: "scale", scale: 5 },
+      { section: "Service Delivery", text: "How do you rate XYZ’s overall technical competency for the services provided to you?", type: "scale", scale: 5 },
+      { section: "Service Delivery", text: "What improvements, if any, have you noticed in XYZ’s service delivery over the past year?", type: "text" },
+      { section: "Service Delivery", text: "How can XYZ further improve future service delivery?", type: "text" },
+
+      { section: "Credibility", text: "How would you rate XYZ’s credibility as a trusted partner?", type: "scale", scale: 5 },
+      { section: "Credibility", text: "How engaged do you feel XYZ is in supporting your business goals and priorities?", type: "scale", scale: 5 },
+      { section: "Credibility", text: "What additional steps could XYZ take to improve their credibility or engagement with your organization?", type: "text" },
+
+      { section: "General", text: "What do you think XYZ is doing well?", type: "text" },
+      { section: "General", text: "What areas do you think XYZ could improve?", type: "text" }
+    ];
+
+    function loadLocalResponses() {
+      let arr = [];
+      try {
+        const raw = localStorage.getItem('survey_responses');
+        if (raw) arr = JSON.parse(raw);
+      } catch(e) { arr = []; }
+      return Array.isArray(arr) ? arr : [];
+    }
+
+    function analyze() {
+      const responses = loadLocalResponses();
+      document.getElementById('totalCount').textContent = responses.length;
+      const container = document.getElementById('analysis');
+      container.innerHTML = '';
+
+      if (responses.length === 0) {
+        container.innerHTML = '<div>No local backup responses found in localStorage key "survey_responses". Responses submitted to a server endpoint are not viewable here unless the server writes them back to local storage.</div>';
+        return;
+      }
+
+      // For each question, compute aggregates
+      for (let qi = 0; qi < questions.length; qi++) {
+        const q = questions[qi];
+        const sect = document.createElement('div');
+        sect.style.padding = '8px 10px';
+        sect.style.border = '1px solid #eef7ff';
+        sect.style.borderRadius = '8px';
+        sect.style.background = '#fff';
+        const title = document.createElement('div');
+        title.style.fontWeight = '700';
+        title.textContent = (qi+1) + '. ' + q.text;
+        sect.appendChild(title);
+
+        if (q.type === 'scale') {
+          const counts = {};
+          let sum = 0, count = 0;
+          for (let r of responses) {
+            const a = r.answers && r.answers[qi];
+            if (typeof a === 'number') {
+              counts[a] = (counts[a] || 0) + 1;
+              sum += a; count++;
+            } else if (!isNaN(parseFloat(a))) {
+              const v = Number(a);
+              counts[v] = (counts[v] || 0) + 1;
+              sum += v; count++;
+            }
+          }
+          const avg = count ? (sum / count).toFixed(2) : 'n/a';
+          const p = document.createElement('div');
+          p.innerHTML = '<strong>Average:</strong> ' + avg + ' &nbsp; <strong>Responses:</strong> ' + count;
+          sect.appendChild(p);
+
+          // breakdown
+          const breakdown = document.createElement('div');
+          breakdown.style.marginTop = '6px';
+          for (let i = q.scale; i >= 1; i--) {
+            const c = counts[i] || 0;
+            const line = document.createElement('div');
+            line.textContent = `${i}: ${c}`;
+            breakdown.appendChild(line);
+          }
+          sect.appendChild(breakdown);
+
+        } else {
+          // text question - list top entries (first 10)
+          const list = document.createElement('div');
+          list.style.marginTop = '8px';
+          let cnt = 0;
+          for (let r of responses) {
+            const a = r.answers && r.answers[qi];
+            if (a && typeof a === 'string' && a.trim()) {
+              const li = document.createElement('div');
+              li.style.marginBottom = '6px';
+              li.style.fontSize = '14px';
+              li.textContent = '- ' + a;
+              list.appendChild(li);
+              cnt++; if (cnt >= 12) break;
+            }
+          }
+          if (cnt === 0) list.textContent = '(no text responses yet)';
+          sect.appendChild(list);
+        }
+
+        container.appendChild(sect);
+      }
+    }
+
+    function exportCsv() {
+      const responses = loadLocalResponses();
+      if (!responses.length) return alert('No local responses to export.');
+      const headers = ['timestamp'].concat(questions.map((q, i) => `Q${i+1}: ${q.text.replace(/"/g,'""')}`));
+      const rows = responses.map(r => {
+        const safe = r.answers.map(a => {
+          if (a === null || a === undefined) return '';
+          // Quote strings that contain comma or newline
+          const s = String(a).replace(/\r?\n/g, ' ');
+          if (s.includes(',') || s.includes('"')) return '"' + s.replace(/"/g,'""') + '"';
+          return s;
+        });
+        return [r.timestamp].concat(safe).join(',');
+      });
+      const csv = [headers.join(',')].concat(rows).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'survey_responses.csv'; document.body.appendChild(a); a.click();
+      setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 500);
+    }
+
+    document.getElementById('reloadBtn').addEventListener('click', analyze);
+    document.getElementById('exportCsv').addEventListener('click', exportCsv);
+    document.getElementById('clearLocal').addEventListener('click', () => {
+      if (!confirm('Clear local backup of responses?')) return;
+      localStorage.removeItem('survey_responses'); analyze();
+    });
+
+    // initial
+    analyze();
+  </script>
+</body>
+</html>
