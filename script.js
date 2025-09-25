@@ -710,34 +710,35 @@ function drawPlayer(x, y, w, h) {
 
     // 😀 Mouth: small smile during survey, big laugh at end
     if (surveyDone) {
-      // ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 2;
-      // ctx.beginPath();
-      // ctx.arc(x + w*0.5, y + h*0.66, 11, 0.15, Math.PI - 0.15);
-      // ctx.stroke();
-      // ctx.fillStyle = '#b33';
-      // ctx.beginPath();
+      ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x + w*0.5, y + h*0.66, 11, 0.15, Math.PI - 0.15);
+      ctx.stroke();
+      ctx.fillStyle = '#b33';
+      ctx.beginPath();
       // ctx.ellipse(x + w*0.5, y + h*0.72, 9, 6, 0, 0, Math.PI*2);
-      // ctx.fill();
-      // 😊 Curved eyes
-      ctx.strokeStyle = "#222";
-      ctx.lineWidth = 2;
+      ctx.fill();
+      
+      // // 😊 Curved eyes
+      // ctx.strokeStyle = "#222";
+      // ctx.lineWidth = 2;
         
-      // left eye (curved arc)
-      ctx.beginPath();
-      ctx.arc(x + w * 0.36, y + h * 0.42, 4, 0.1 * Math.PI, 0.9 * Math.PI);
-      ctx.stroke();
+      // // left eye (curved arc)
+      // ctx.beginPath();
+      // ctx.arc(x + w * 0.36, y + h * 0.42, 4, 0.1 * Math.PI, 0.9 * Math.PI);
+      // ctx.stroke();
         
-      // right eye (curved arc)
-      ctx.beginPath();
-      ctx.arc(x + w * 0.64, y + h * 0.42, 4, 0.1 * Math.PI, 0.9 * Math.PI);
-      ctx.stroke();
+      // // right eye (curved arc)
+      // ctx.beginPath();
+      // ctx.arc(x + w * 0.64, y + h * 0.42, 4, 0.1 * Math.PI, 0.9 * Math.PI);
+      // ctx.stroke();
        
-      // 😀 Big smiling mouth
-      ctx.strokeStyle = "#3b2a1a";
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.arc(x + w * 0.5, y + h * 0.66, 12, 0.15 * Math.PI, 0.85 * Math.PI);
-      ctx.stroke();
+      // // 😀 Big smiling mouth
+      // ctx.strokeStyle = "#3b2a1a";
+      // ctx.lineWidth = 2.5;
+      // ctx.beginPath();
+      // ctx.arc(x + w * 0.5, y + h * 0.66, 12, 0.15 * Math.PI, 0.85 * Math.PI);
+      // ctx.stroke();
       
     } else {
       ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 1.2;
