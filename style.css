@@ -23,7 +23,7 @@ canvas#gameCanvas{
 }
 
 /* Instructions Popup start */
-#overlay {
+/* #overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0, 0, 0, 0.85);
@@ -57,6 +57,74 @@ canvas#gameCanvas{
 }
 #overlay button:hover {
   background: #1565c0;
+} */
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.overlay-box {
+  background: #fff;
+  border-radius: 10px;
+  padding: 28px 60px;
+  width: 640px;         /* wider rectangle */
+  max-width: 90%;
+  font-family: "Comic Sans MS", cursive, sans-serif;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.25);
+  text-align: right;    /* makes text + bullets align right */
+  animation: fadeIn 0.5s ease;
+}
+
+.overlay-title {
+  font-size: 26px;
+  color: #1e88e5;
+  margin-bottom: 22px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.overlay-list {
+  list-style-position: inside; /* keep bullets aligned with text */
+  padding: 0;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.8;
+  direction: rtl;       /* flips bullet + text to right alignment */
+}
+
+.overlay-list li {
+  direction: ltr;       /* keeps text normal but bullets on right */
+  margin-bottom: 10px;
+}
+
+#startBtn {
+  margin-top: 28px;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 8px;
+  background: #1e88e5;
+  color: #fff;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+#startBtn:hover {
+  background: #1565c0;
+  transform: translateY(-2px);
+}
+#startBtn:active {
+  transform: translateY(1px);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 /* Instructions Popup start */
 
