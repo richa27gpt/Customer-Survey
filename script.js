@@ -62,7 +62,7 @@ let clouds = [];
 function initClouds(){
   clouds = [];
   for(let i=0;i<8;i++){
-    clouds.push({x: Math.random()*W, y: 30+Math.random()*120, s: 0.6+Math.random()*0.9, speed: 0.03+Math.random()*0.08, t: Math.random()*Math.PI*2});
+    clouds.push({x: Math.random()*W, y: 30 + Math.random() * (H * 0.5), s: 0.6+Math.random()*0.9, speed: 0.03+Math.random()*0.08, t: Math.random()*Math.PI*2});
   }
 }
 initClouds();
