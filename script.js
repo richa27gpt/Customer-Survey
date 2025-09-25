@@ -68,20 +68,55 @@ function initClouds(){
 initClouds();
 
 // 
-// --- Green tunnels (pipes) near the end ---
+// // --- Green tunnels (pipes) near the end ---
+// let pipes = [];
+// function initPipes() {
+//   pipes = [];
+//   for (let i = 0; i < 3; i++) {
+//     pipes.push({
+//       x: W - 250 + i * 90,  // spread near the right edge
+//       y: H - 28,            // ground level
+//       h: 60 + Math.random() * 40, // variable pipe height
+//       r: 22                 // pipe radius
+//     });
+//   }
+// }
+// initPipes();
+
+// --- Warp pipes (random count each side) ---
 let pipes = [];
+
 function initPipes() {
   pipes = [];
-  for (let i = 0; i < 3; i++) {
+
+  // left side pipes (1–3)
+  const leftCount = 1 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < leftCount; i++) {
     pipes.push({
-      x: W - 250 + i * 90,  // spread near the right edge
-      y: H - 28,            // ground level
-      h: 60 + Math.random() * 40, // variable pipe height
-      r: 22                 // pipe radius
+      x: 40,
+      y: H - 28,
+      h: 60 + Math.random() * 50,
+      r: 22,
+      side: "left"
+    });
+  }
+
+  // right side pipes (1–3)
+  const rightCount = 1 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < rightCount; i++) {
+    pipes.push({
+      x: W - 80,
+      y: H - 28,
+      h: 60 + Math.random() * 50,
+      r: 22,
+      side: "right"
     });
   }
 }
+
 initPipes();
+
+let pipeTransition = false; // flag to lock controls while warping
 // 
 
 let answerBlocks = []; // suspended blocks
@@ -433,23 +468,65 @@ layoutAnswerBlocks();
 
   // 
   // draw green pipes
-  for (const p of pipes) {
-    const px = p.x, py = p.y;
+  // for (const p of pipes) {
+  //   const px = p.x, py = p.y;
   
-    // pipe body
-    ctx.fillStyle = "#2ecc71";
-    ctx.fillRect(px, py - p.h, p.r*2, p.h);
+  //   // pipe body
+  //   ctx.fillStyle = "#2ecc71";
+  //   ctx.fillRect(px, py - p.h, p.r*2, p.h);
   
-    // pipe top (cap)
-    ctx.fillStyle = "#27ae60";
-    ctx.fillRect(px - 4, py - p.h - 14, p.r*2 + 8, 14);
+  //   // pipe top (cap)
+  //   ctx.fillStyle = "#27ae60";
+  //   ctx.fillRect(px - 4, py - p.h - 14, p.r*2 + 8, 14);
   
-    // outline
-    ctx.strokeStyle = "#145a32";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(px, py - p.h, p.r*2, p.h);          // body
-    ctx.strokeRect(px - 4, py - p.h - 14, p.r*2 + 8, 14); // top cap
+  //   // outline
+  //   ctx.strokeStyle = "#145a32";
+  //   ctx.lineWidth = 2;
+  //   ctx.strokeRect(px, py - p.h, p.r*2, p.h);          // body
+  //   ctx.strokeRect(px - 4, py - p.h - 14, p.r*2 + 8, 14); // top cap
+  // }
+
+  // --- Pipe warp interaction ---
+  if (!pipeTransition) {
+    for (const p of pipes) {
+      const topY = p.y - p.h - 14;
+      if (
+        mario.y + mario.h <= topY + 6 &&
+        mario.y + mario.h >= topY - 6 &&
+        mario.x + mario.w/2 >= p.x - 4 &&
+        mario.x + mario.w/2 <= p.x + p.r*2 + 4 &&
+        mario.vy >= 0
+      ) {
+        pipeTransition = true;
+        let targets = pipes.filter(other => other.side !== p.side);
+        let target = targets[Math.floor(Math.random() * targets.length)];
+  
+        // sink down animation
+        let sink = setInterval(() => {
+          mario.y += 2;
+          if (mario.y > p.y) {
+            clearInterval(sink);
+  
+            // teleport to opposite pipe
+            mario.x = target.x + target.r - mario.w/2;
+            mario.y = target.y;
+  
+            // rise out
+            let riseCount = 0;
+            let rise = setInterval(() => {
+              mario.y -= 2;
+              riseCount++;
+              if (riseCount > 20) {
+                clearInterval(rise);
+                pipeTransition = false;
+              }
+            }, 30);
+          }
+        }, 30);
+      }
+    }
   }
+
   // 
   
   // draw suspended answer blocks
