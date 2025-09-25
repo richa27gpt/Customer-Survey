@@ -68,19 +68,20 @@ function initClouds(){
 initClouds();
 
 // 
-// --- Trees near the end ---
-let trees = [];
-function initTrees() {
-  trees = [];
-  for (let i = 0; i < 4; i++) {
-    trees.push({
-      x: W - 200 + i * 60,   // clustered near the right edge
-      y: H - 28,             // ground level
-      s: 1 + Math.random()*0.4 // random scale
+// --- Green tunnels (pipes) near the end ---
+let pipes = [];
+function initPipes() {
+  pipes = [];
+  for (let i = 0; i < 3; i++) {
+    pipes.push({
+      x: W - 250 + i * 90,  // spread near the right edge
+      y: H - 28,            // ground level
+      h: 60 + Math.random() * 40, // variable pipe height
+      r: 22                 // pipe radius
     });
   }
 }
-initTrees();
+initPipes();
 // 
 
 let answerBlocks = []; // suspended blocks
@@ -431,23 +432,24 @@ layoutAnswerBlocks();
   ctx.fillStyle = '#3fa34a'; ctx.fillRect(0, H - 28, W, 28);
 
   // 
-  // draw trees
-  for (const t of trees) {
-    const tx = t.x, ty = t.y;
-    const s = t.s;
-    // trunk
-    ctx.fillStyle = "#8B5A2B";
-    ctx.fillRect(tx, ty - 40*s, 12*s, 40*s);
+  // draw green pipes
+  for (const p of pipes) {
+    const px = p.x, py = p.y;
   
-    // foliage (three overlapping circles)
-    ctx.fillStyle = "#228B22";
-    ctx.beginPath();
-    ctx.arc(tx + 6*s, ty - 50*s, 18*s, 0, Math.PI*2);
-    ctx.arc(tx - 6*s, ty - 40*s, 16*s, 0, Math.PI*2);
-    ctx.arc(tx + 16*s, ty - 40*s, 16*s, 0, Math.PI*2);
-    ctx.fill();
+    // pipe body
+    ctx.fillStyle = "#2ecc71";
+    ctx.fillRect(px, py - p.h, p.r*2, p.h);
+  
+    // pipe top (cap)
+    ctx.fillStyle = "#27ae60";
+    ctx.fillRect(px - 4, py - p.h - 14, p.r*2 + 8, 14);
+  
+    // outline
+    ctx.strokeStyle = "#145a32";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(px, py - p.h, p.r*2, p.h);          // body
+    ctx.strokeRect(px - 4, py - p.h - 14, p.r*2 + 8, 14); // top cap
   }
-
   // 
   
   // draw suspended answer blocks
