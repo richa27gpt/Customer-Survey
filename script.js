@@ -485,6 +485,22 @@ layoutAnswerBlocks();
   //   ctx.strokeRect(px, py - p.h, p.r*2, p.h);          // body
   //   ctx.strokeRect(px - 4, py - p.h - 14, p.r*2 + 8, 14); // top cap
   // }
+  // draw green pipes
+  
+  for (const p of pipes) {
+    const px = p.x, py = p.y;
+  
+    ctx.fillStyle = "#2ecc71"; // body
+    ctx.fillRect(px, py - p.h, p.r*2, p.h);
+  
+    ctx.fillStyle = "#27ae60"; // cap
+    ctx.fillRect(px - 4, py - p.h - 14, p.r*2 + 8, 14);
+  
+    ctx.strokeStyle = "#145a32"; // outline
+    ctx.lineWidth = 2;
+    ctx.strokeRect(px, py - p.h, p.r*2, p.h);
+    ctx.strokeRect(px - 4, py - p.h - 14, p.r*2 + 8, 14);
+  }
 
   // --- Pipe warp interaction ---
   if (!pipeTransition) {
@@ -702,10 +718,17 @@ function drawPlayer(x, y, w, h) {
       // ctx.beginPath();
       // ctx.ellipse(x + w*0.5, y + h*0.72, 9, 6, 0, 0, Math.PI*2);
       // ctx.fill();
-      ctx.font = `${Math.floor(h * 0.9)}px serif`; // size relative to Mario
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText("😄", x + w * 0.5, y + h * 0.65);
+        ctx.strokeStyle = '#3b2a1a';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x + w*0.5, y + h*0.66, 11, 0.2, Math.PI - 0.2); // big grin arc
+        ctx.stroke();
+      
+        // open red mouth fill under arc
+        ctx.fillStyle = '#b33';
+        ctx.beginPath();
+        ctx.ellipse(x + w*0.5, y + h*0.72, 8, 6, 0, 0, Math.PI*2);
+        ctx.fill();
       
     } else {
       ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 1.2;
