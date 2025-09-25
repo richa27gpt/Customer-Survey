@@ -22,6 +22,27 @@ canvas#gameCanvas{
   background: linear-gradient(to top, #dff6ff 66%, #fff 100%);
 }
 
+#soundToggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 22px;
+  background: rgba(255,255,255,0.85);
+  border: 2px solid #1e88e5;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+#soundToggle:hover {
+  background: rgba(30,136,229,0.15);
+}
+
 /* Modal prompt */
 #openPrompt, #endScreen{
   position: absolute;
