@@ -502,61 +502,47 @@ layoutAnswerBlocks();
     ctx.strokeRect(px - 4, py - p.h - 14, p.r*2 + 8, 14);
   }
 
-  // --- Pipe warp interaction ---
-  if (!pipeTransition) {
-    for (const p of pipes) {
-      const topY = p.y - p.h - 14;
-      // if (
-      //   mario.y + mario.h <= topY + 6 &&
-      //   mario.y + mario.h >= topY - 6 &&
-      //   mario.x + mario.w/2 >= p.x - 4 &&
-      //   mario.x + mario.w/2 <= p.x + p.r*2 + 4 &&
-      //   mario.vy >= 0
-      // ) 
-      
-      if (
-        // vertical range: 20px above → 12px below pipe cap
-        mario.y + mario.h >= topY - 20 &&
-        mario.y + mario.h <= topY + 12 &&
-      
-        // horizontal range: add ±10px margin
-        mario.x + mario.w/2 >= p.x - 10 &&
-        mario.x + mario.w/2 <= p.x + p.r*2 + 10 &&
-      
-        // only allow if falling or standing
-        mario.vy >= -1
-      )
-      {
-        pipeTransition = true;
-        let targets = pipes.filter(other => other.side !== p.side);
-        let target = targets[Math.floor(Math.random() * targets.length)];
+  // // --- Pipe warp interaction ---
+  // if (!pipeTransition) {
+  //   for (const p of pipes) {
+  //     const topY = p.y - p.h - 14;
+  //     if (
+  //       mario.y + mario.h <= topY + 6 &&
+  //       mario.y + mario.h >= topY - 6 &&
+  //       mario.x + mario.w/2 >= p.x - 4 &&
+  //       mario.x + mario.w/2 <= p.x + p.r*2 + 4 &&
+  //       mario.vy >= 0
+  //     ) 
+  //     {
+  //       pipeTransition = true;
+  //       let targets = pipes.filter(other => other.side !== p.side);
+  //       let target = targets[Math.floor(Math.random() * targets.length)];
   
-        // sink down animation
-        let sink = setInterval(() => {
-          mario.y += 2;
-          if (mario.y > p.y) {
-            clearInterval(sink);
+  //       // sink down animation
+  //       let sink = setInterval(() => {
+  //         mario.y += 2;
+  //         if (mario.y > p.y) {
+  //           clearInterval(sink);
   
-            // teleport to opposite pipe
-            mario.x = target.x + target.r - mario.w/2;
-            mario.y = target.y;
+  //           // teleport to opposite pipe
+  //           mario.x = target.x + target.r - mario.w/2;
+  //           mario.y = target.y;
   
-            // rise out
-            let riseCount = 0;
-            let rise = setInterval(() => {
-              mario.y -= 2;
-              riseCount++;
-              if (riseCount > 20) {
-                clearInterval(rise);
-                pipeTransition = false;
-              }
-            }, 30);
-          }
-        }, 30);
-      }
-    }
-  }
-
+  //           // rise out
+  //           let riseCount = 0;
+  //           let rise = setInterval(() => {
+  //             mario.y -= 2;
+  //             riseCount++;
+  //             if (riseCount > 20) {
+  //               clearInterval(rise);
+  //               pipeTransition = false;
+  //             }
+  //           }, 30);
+  //         }
+  //       }, 30);
+  //     }
+  //   }
+  // }
   // 
   
   // draw suspended answer blocks
