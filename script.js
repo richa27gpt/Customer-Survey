@@ -7,28 +7,28 @@ const LOCAL_RESPONSES_KEY = 'survey_responses';
 
 // ---------- QUESTIONS ----------
 const questions = [
-  { section: "Leadership", text: "How would you rate the overall vision and strategic direction provided by XYZ’s leadership?", type: "scale", scale: 5 },
-  { section: "Leadership", text: "To what extent do you feel XYZ’s leadership is aligned with your organization’s goals and priorities?", type: "scale", scale: 5 },
-  { section: "Leadership", text: "Over the past year, what specific improvements or changes in XYZ’s leadership have you noticed?", type: "text" },
-  { section: "Leadership", text: "Looking forward, what do XYZ’s leadership need to improve to support you better?", type: "text" },
+  { section: "Leadership", text: "How would you rate the overall vision and strategic direction provided by DDIE’s leadership?", type: "scale", scale: 5 },
+  { section: "Leadership", text: "To what extent do you feel DDIE’s leadership is aligned with your organization’s goals and priorities?", type: "scale", scale: 5 },
+  { section: "Leadership", text: "Over the past year, what specific improvements or changes in DDIE’s leadership have you noticed?", type: "text" },
+  { section: "Leadership", text: "Looking forward, what do DDIE’s leadership need to improve to support you better?", type: "text" },
 
   { section: "Account Management", text: "How satisfied are you with the responsiveness and engagement of your account manager?", type: "scale", scale: 5 },
-  { section: "Account Management", text: "Has your account manager changed this year? If Yes, to what extent has this change affected your experience of XYZ (1 = Much Worse, 5 = Much Better)?", type: "scale", scale: 5 },
+  { section: "Account Management", text: "Has your account manager changed this year? If Yes, to what extent has this change affected your experience of DDIE (1 = Much Worse, 5 = Much Better)?", type: "scale", scale: 5 },
   { section: "Account Management", text: "To what extent do you feel your account manager is aligned with your organization’s goals and priorities?", type: "scale", scale: 5 },
   { section: "Account Management", text: "What additional steps could your account manager take to improve responsiveness, engagement, or alignment with your organization?", type: "text" },
 
-  { section: "Service Delivery", text: "How would you rate the overall quality of service delivery provided by XYZ?", type: "scale", scale: 5 },
-  { section: "Service Delivery", text: "How satisfied are you with XYZ’s response times to your requests or issues?", type: "scale", scale: 5 },
-  { section: "Service Delivery", text: "How do you rate XYZ’s overall technical competency for the services provided to you?", type: "scale", scale: 5 },
-  { section: "Service Delivery", text: "What improvements, if any, have you noticed in XYZ’s service delivery over the past year?", type: "text" },
-  { section: "Service Delivery", text: "How can XYZ further improve future service delivery?", type: "text" },
+  { section: "Service Delivery", text: "How would you rate the overall quality of service delivery provided by DDIE?", type: "scale", scale: 5 },
+  { section: "Service Delivery", text: "How satisfied are you with DDIE’s response times to your requests or issues?", type: "scale", scale: 5 },
+  { section: "Service Delivery", text: "How do you rate DDIE’s overall technical competency for the services provided to you?", type: "scale", scale: 5 },
+  { section: "Service Delivery", text: "What improvements, if any, have you noticed in DDIE’s service delivery over the past year?", type: "text" },
+  { section: "Service Delivery", text: "How can DDIE further improve future service delivery?", type: "text" },
 
-  { section: "Credibility", text: "How would you rate XYZ’s credibility as a trusted partner?", type: "scale", scale: 5 },
-  { section: "Credibility", text: "How engaged do you feel XYZ is in supporting your business goals and priorities?", type: "scale", scale: 5 },
-  { section: "Credibility", text: "What additional steps could XYZ take to improve their credibility or engagement with your organization?", type: "text" },
+  { section: "Credibility", text: "How would you rate DDIE’s credibility as a trusted partner?", type: "scale", scale: 5 },
+  { section: "Credibility", text: "How engaged do you feel DDIE is in supporting your business goals and priorities?", type: "scale", scale: 5 },
+  { section: "Credibility", text: "What additional steps could DDIE take to improve their credibility or engagement with your organization?", type: "text" },
 
-  { section: "General", text: "What do you think XYZ is doing well?", type: "text" },
-  { section: "General", text: "What areas do you think XYZ could improve?", type: "text" }
+  { section: "General", text: "What do you think DDIE is doing well?", type: "text" },
+  { section: "General", text: "What areas do you think DDIE could improve?", type: "text" }
 ];
 
 // ---------- Canvas & DOM ----------
