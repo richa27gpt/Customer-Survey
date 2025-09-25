@@ -144,34 +144,34 @@ let endJumpTimer = 0;
 let endSpawnInterval = null;
 
 // ---------- Input ----------
-const keys = {};
+// const keys = {};
 // window.addEventListener('keydown', (e) => { keys[e.key] = true; });
 // window.addEventListener('keyup', (e) => { keys[e.key] = false; });
 
-// ---------- Input ----------
-const keys = {};
+// ---------- Input (fixed) ----------
+const keys = Object.create(null);
+const BLOCKED = new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ']);
 
-// Handle key presses
-window.addEventListener("keydown", (e) => {
-  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) {
-    e.preventDefault(); // stop page scrolling
-  }
-  keys[e.key] = true;
+function isTypingTarget(el) {
+  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+}
+
+window.addEventListener('keydown', (e) => {
+  if (BLOCKED.has(e.key) && !isTypingTarget(e.target)) e.preventDefault(); // stop page scroll only when not typing
+  if (!isTypingTarget(e.target)) keys[e.key] = true;
 });
 
-// Handle key releases
-window.addEventListener("keyup", (e) => {
-  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) {
-    e.preventDefault();
-  }
+window.addEventListener('keyup', (e) => {
+  if (BLOCKED.has(e.key) && !isTypingTarget(e.target)) e.preventDefault();
   keys[e.key] = false;
 });
 
-// Ensure canvas focus for consistent key handling
-canvas.setAttribute("tabindex", "0"); // make it focusable
-canvas.focus();
-canvas.addEventListener("click", () => canvas.focus());
+// clear any “stuck key” if focus is lost (alt-tab, click outside, overlay, etc.)
+window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
 
+// make the canvas focusable and refocus on click (doesn’t interfere with your existing mousedown handler)
+canvas.setAttribute('tabindex', '0');
+canvas.addEventListener('mousedown', () => canvas.focus());
 
 // Mouse click selection for blocks
 canvas.addEventListener('mousedown', (e) => {
