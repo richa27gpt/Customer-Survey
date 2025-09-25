@@ -7,6 +7,20 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <!-- Instructions Popup -->
+  <div id="overlay">
+    <div class="overlay-box">
+      <h1>🎮 Welcome to the Survey Game!</h1>
+      <p>
+        Use <b>Arrow keys</b> (or <b>A / D</b>) to move.<br>
+        Press <b>Up Arrow / W</b> to jump.<br>
+        Hit the yellow blocks to answer questions.<br>
+        Watch out for goombas!
+      </p>
+      <button id="startBtn">I Understand</button>
+    </div>
+  </div>
+
   <canvas id="gameCanvas" width="960" height="480" aria-label="Survey game canvas"></canvas>
   <!-- Mute/Unmute -->
   <button id="soundToggle" title="Toggle sound">🔊</button>
