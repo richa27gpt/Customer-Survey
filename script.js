@@ -148,20 +148,30 @@ const keys = {};
 // window.addEventListener('keydown', (e) => { keys[e.key] = true; });
 // window.addEventListener('keyup', (e) => { keys[e.key] = false; });
 
+// ---------- Input ----------
 const keys = {};
-window.addEventListener('keydown', (e) => {
+
+// Handle key presses
+window.addEventListener("keydown", (e) => {
   if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) {
     e.preventDefault(); // stop page scrolling
   }
   keys[e.key] = true;
 });
 
-window.addEventListener('keyup', (e) => {
+// Handle key releases
+window.addEventListener("keyup", (e) => {
   if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) {
     e.preventDefault();
   }
   keys[e.key] = false;
 });
+
+// Ensure canvas focus for consistent key handling
+canvas.setAttribute("tabindex", "0"); // make it focusable
+canvas.focus();
+canvas.addEventListener("click", () => canvas.focus());
+
 
 // Mouse click selection for blocks
 canvas.addEventListener('mousedown', (e) => {
