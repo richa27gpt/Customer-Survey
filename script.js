@@ -135,6 +135,9 @@ let surveyDone = false;
 let showingPrompt = false;
 let lastSelectionTime = 0;
 
+// Back Button
+let lastScaleQuestion = -1;
+
 // end-screen celebration running flag & timers
 let endCelebrationRunning = false;
 let endJumpTimer = 0;
@@ -201,8 +204,29 @@ function strikeBlock(index) {
 }
 function selectScale(val) {
   answers.push(val);
+  lastScaleQuestion = currentQ; // remember this question index for Back Button
+  document.getElementById('backBtn').style.display = "inline-block"; //Show/Hide Back Button logic
   advanceQuestion();
 }
+
+// Back Button
+function goBackOneQuestion() {
+  if (lastScaleQuestion >= 0 && currentQ > 0) {
+    // remove last answer
+    answers.pop();
+    currentQ = lastScaleQuestion;  // step back
+    layoutAnswerBlocks();          // re-draw boxes
+
+    // Reset Mario position
+    mario.x = W/2 - mario.w/2;
+    mario.y = H - 28 - mario.h;
+
+    // hide back button until next answer
+    document.getElementById('backBtn').style.display = "none";
+    lastScaleQuestion = -1;
+  }
+}
+
 function advanceQuestion() {
   currentQ++;
   // preserve mario.x (do not reset). keep inside bounds.
@@ -233,6 +257,8 @@ function showTextPrompt(qText, callback) {
   function onEnter(e) { if (e.key === 'Enter') handler(); }
   promptSubmit.addEventListener('click', handler);
   window.addEventListener('keypress', onEnter);
+  
+  document.getElementById('backBtn').style.display = "none"; //Show/Hide logic for Back Button
 }
 
 // ---------- Server submission (anonymous) with local fallback ----------
@@ -310,6 +336,7 @@ function finishSurvey() {
     endScreen.classList.remove('hidden');
     startEndCelebration();
   });
+  document.getElementById('backBtn').style.display = "none"; //Show/Hide logic for Back Button
 }
 
 // ---------- Continuous Celebration (keeps spawning) ----------
@@ -500,27 +527,6 @@ layoutAnswerBlocks();
 
   // ground
   ctx.fillStyle = '#3fa34a'; ctx.fillRect(0, H - 28, W, 28);
-
-  // 
-  // draw green pipes
-  // for (const p of pipes) {
-  //   const px = p.x, py = p.y;
-  
-  //   // pipe body
-  //   ctx.fillStyle = "#2ecc71";
-  //   ctx.fillRect(px, py - p.h, p.r*2, p.h);
-  
-  //   // pipe top (cap)
-  //   ctx.fillStyle = "#27ae60";
-  //   ctx.fillRect(px - 4, py - p.h - 14, p.r*2 + 8, 14);
-  
-  //   // outline
-  //   ctx.strokeStyle = "#145a32";
-  //   ctx.lineWidth = 2;
-  //   ctx.strokeRect(px, py - p.h, p.r*2, p.h);          // body
-  //   ctx.strokeRect(px - 4, py - p.h - 14, p.r*2 + 8, 14); // top cap
-  // }
-  // draw green pipes
   
   for (const p of pipes) {
     const px = p.x, py = p.y;
@@ -770,6 +776,9 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   }
   ctx.fillText(line, x, y);
 }
+
+// Wiring Back Button
+document.getElementById('backBtn').addEventListener('click', goBackOneQuestion);
 
 // ---------- Ensure answerBlocks recalculated on question change ----------
 const originalAdvance = advanceQuestion;
