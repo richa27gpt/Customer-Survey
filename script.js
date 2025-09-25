@@ -36,6 +36,15 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const W = canvas.width, H = canvas.height;
 
+// Instructions overlay
+const overlay = document.getElementById("overlay");
+const startBtn = document.getElementById("startBtn");
+
+startBtn.addEventListener("click", () => {
+  overlay.style.display = "none";
+  canvas.focus();  // immediately give control to game
+});
+
 const openPrompt = document.getElementById('openPrompt');
 const promptTitle = document.getElementById('promptTitle');
 const promptInput = document.getElementById('promptInput');
