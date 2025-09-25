@@ -145,8 +145,23 @@ let endSpawnInterval = null;
 
 // ---------- Input ----------
 const keys = {};
-window.addEventListener('keydown', (e) => { keys[e.key] = true; });
-window.addEventListener('keyup', (e) => { keys[e.key] = false; });
+// window.addEventListener('keydown', (e) => { keys[e.key] = true; });
+// window.addEventListener('keyup', (e) => { keys[e.key] = false; });
+
+const keys = {};
+window.addEventListener('keydown', (e) => {
+  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) {
+    e.preventDefault(); // stop page scrolling
+  }
+  keys[e.key] = true;
+});
+
+window.addEventListener('keyup', (e) => {
+  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) {
+    e.preventDefault();
+  }
+  keys[e.key] = false;
+});
 
 // Mouse click selection for blocks
 canvas.addEventListener('mousedown', (e) => {
