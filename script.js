@@ -62,10 +62,26 @@ let clouds = [];
 function initClouds(){
   clouds = [];
   for(let i=0;i<8;i++){
-    clouds.push({x: Math.random()*W, y: 30 + Math.random() * (H * 0.5), s: 0.6+Math.random()*0.9, speed: 0.03+Math.random()*0.08, t: Math.random()*Math.PI*2});
+    clouds.push({x: Math.random()*W, y: 30 + Math.random() * (H * 0.3), s: 0.6+Math.random()*0.9, speed: 0.03+Math.random()*0.08, t: Math.random()*Math.PI*2});
   }
 }
 initClouds();
+
+// 
+// --- Trees near the end ---
+let trees = [];
+function initTrees() {
+  trees = [];
+  for (let i = 0; i < 4; i++) {
+    trees.push({
+      x: W - 200 + i * 60,   // clustered near the right edge
+      y: H - 28,             // ground level
+      s: 1 + Math.random()*0.4 // random scale
+    });
+  }
+}
+initTrees();
+// 
 
 let answerBlocks = []; // suspended blocks
 const blockW = 48, blockH = 34, blockGap = 18, blockAbove = 108;
@@ -414,6 +430,26 @@ layoutAnswerBlocks();
   // ground
   ctx.fillStyle = '#3fa34a'; ctx.fillRect(0, H - 28, W, 28);
 
+  // 
+  // draw trees
+  for (const t of trees) {
+    const tx = t.x, ty = t.y;
+    const s = t.s;
+    // trunk
+    ctx.fillStyle = "#8B5A2B";
+    ctx.fillRect(tx, ty - 40*s, 12*s, 40*s);
+  
+    // foliage (three overlapping circles)
+    ctx.fillStyle = "#228B22";
+    ctx.beginPath();
+    ctx.arc(tx + 6*s, ty - 50*s, 18*s, 0, Math.PI*2);
+    ctx.arc(tx - 6*s, ty - 40*s, 16*s, 0, Math.PI*2);
+    ctx.arc(tx + 16*s, ty - 40*s, 16*s, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  // 
+  
   // draw suspended answer blocks
   for (const b of answerBlocks) {
     const shakeOffset = b.shake > 0 ? Math.sin(b.shake * 0.8) * 4 : 0;
