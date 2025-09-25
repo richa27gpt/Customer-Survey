@@ -58,9 +58,9 @@ const goombas = [
 ];
 
 // --- Sounds ---
-const jumpSound = new Audio('sounds/jump.wav');
-const coinSound = new Audio('sounds/coin.wav');
-const hitSound  = new Audio('sounds/hit.wav');
+const jumpSound = new Audio('sounds/jump.mp3');
+const coinSound = new Audio('sounds/coin.mp3');
+const hitSound  = new Audio('sounds/hit.mp3');
 
 // optional: lower default volume
 jumpSound.volume = 0.6;
