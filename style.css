@@ -61,7 +61,7 @@ canvas#gameCanvas{
 #overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.65); /* dim backdrop */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -69,42 +69,51 @@ canvas#gameCanvas{
 }
 
 .overlay-box {
-  background: #fff;
-  border-radius: 10px;
-  padding: 28px 60px;
-  width: 640px;         /* wider rectangle */
+  background: #fdf6e3; /* soft parchment/cream instead of pure white */
+  border: 2px solid #e0c97f; /* warm subtle border */
+  border-radius: 12px;
+  padding: 32px 40px;
+  width: 600px; 
   max-width: 90%;
   font-family: "Comic Sans MS", cursive, sans-serif;
-  box-shadow: 0 10px 28px rgba(0,0,0,0.25);
-  text-align: right;    /* makes text + bullets align right */
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  text-align: left;   /* left aligned now */
   animation: fadeIn 0.5s ease;
 }
 
 .overlay-title {
   font-size: 26px;
   color: #1e88e5;
-  margin-bottom: 22px;
+  margin-bottom: 20px;
   font-weight: bold;
   text-align: center;
+  text-shadow: 1px 1px #fff7c2;
 }
 
 .overlay-list {
-  list-style-position: inside; /* keep bullets aligned with text */
-  padding: 0;
+  list-style-type: disc;
+  padding-left: 24px;
   margin: 0;
   font-size: 16px;
   line-height: 1.8;
-  direction: rtl;       /* flips bullet + text to right alignment */
+  color: #333;
 }
 
-.overlay-list li {
-  direction: ltr;       /* keeps text normal but bullets on right */
-  margin-bottom: 10px;
+.highlight {
+  color: #e6a400;
+  font-weight: bold;
+}
+
+.enemy {
+  color: #d32f2f;
+  font-weight: bold;
 }
 
 #startBtn {
   margin-top: 28px;
-  padding: 12px 28px;
+  display: block;
+  width: 100%;
+  padding: 12px 24px;
   border: none;
   border-radius: 8px;
   background: #1e88e5;
@@ -123,7 +132,7 @@ canvas#gameCanvas{
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 /* Instructions Popup start */
