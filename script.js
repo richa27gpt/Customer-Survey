@@ -291,6 +291,15 @@ function finishSurvey() {
   // Play victory sound
   winSound.currentTime = 0;
   winSound.play();
+
+  // 👉 Disable sound toggle when survey ends
+  const soundBtn = document.getElementById('soundToggle');
+  if (soundBtn) {
+    soundBtn.disabled = true;          // prevent clicks
+    soundBtn.style.opacity = "0.5";    // fade visually
+    soundBtn.style.cursor = "not-allowed";
+    soundBtn.title = "Sound disabled after survey"; // update tooltip
+  }
   
   submitAnonymizedResults(payload).then(success => {
     openPrompt.classList.add('hidden');
