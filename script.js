@@ -93,21 +93,21 @@ function initPipes() {
   const leftCount = 1 + Math.floor(Math.random() * 3);
   for (let i = 0; i < leftCount; i++) {
     pipes.push({
-      x: 40,
+      x: 40 + i * 60,            // stagger horizontally
       y: H - 28,
-      h: 60 + Math.random() * 50,
+      h: 40 + Math.random() * 20, // reachable height
       r: 22,
       side: "left"
     });
   }
-
+  
   // right side pipes (1–3)
   const rightCount = 1 + Math.floor(Math.random() * 3);
   for (let i = 0; i < rightCount; i++) {
     pipes.push({
-      x: W - 80,
+      x: W - 80 - i * 60,        // stagger inward
       y: H - 28,
-      h: 60 + Math.random() * 50,
+      h: 40 + Math.random() * 20,
       r: 22,
       side: "right"
     });
@@ -506,13 +506,22 @@ layoutAnswerBlocks();
   if (!pipeTransition) {
     for (const p of pipes) {
       const topY = p.y - p.h - 14;
+      // if (
+      //   mario.y + mario.h <= topY + 6 &&
+      //   mario.y + mario.h >= topY - 6 &&
+      //   mario.x + mario.w/2 >= p.x - 4 &&
+      //   mario.x + mario.w/2 <= p.x + p.r*2 + 4 &&
+      //   mario.vy >= 0
+      // ) 
+      //Boost Mario's Jump
       if (
-        mario.y + mario.h <= topY + 6 &&
-        mario.y + mario.h >= topY - 6 &&
-        mario.x + mario.w/2 >= p.x - 4 &&
-        mario.x + mario.w/2 <= p.x + p.r*2 + 4 &&
+        mario.y + mario.h >= topY - 20 &&   // allow up to 20px above
+        mario.y + mario.h <= topY + 12 &&   // allow a little below
+        mario.x + mario.w/2 >= p.x - 10 &&  // sideways margin
+        mario.x + mario.w/2 <= p.x + p.r*2 + 10 &&
         mario.vy >= 0
-      ) {
+      )
+      {
         pipeTransition = true;
         let targets = pipes.filter(other => other.side !== p.side);
         let target = targets[Math.floor(Math.random() * targets.length)];
