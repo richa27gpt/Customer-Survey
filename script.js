@@ -57,6 +57,18 @@ const goombas = [
   { x: 670, y: H - 28 - 20, w: 22, h: 20, dir: -1, spd: 0.96, bob: 0 }
 ];
 
+// --- Sounds ---
+const jumpSound = new Audio('sounds/jump.wav');
+const coinSound = new Audio('sounds/coin.wav');
+const hitSound  = new Audio('sounds/hit.wav');
+
+// optional: lower default volume
+jumpSound.volume = 0.6;
+coinSound.volume = 0.6;
+hitSound.volume  = 0.6;
+// --- Sounds ---
+
+//// Function Declarations ////
 // --- Moving clouds (slow drift) ---
 let clouds = [];
 function initClouds(){
@@ -67,23 +79,7 @@ function initClouds(){
 }
 initClouds();
 
-// 
-// // --- Green tunnels (pipes) near the end ---
-// let pipes = [];
-// function initPipes() {
-//   pipes = [];
-//   for (let i = 0; i < 3; i++) {
-//     pipes.push({
-//       x: W - 250 + i * 90,  // spread near the right edge
-//       y: H - 28,            // ground level
-//       h: 60 + Math.random() * 40, // variable pipe height
-//       r: 22                 // pipe radius
-//     });
-//   }
-// }
-// initPipes();
-
-// --- Warp pipes (random count each side) ---
+// --- Pipes (random count each side) ---
 let pipes = [];
 
 function initPipes() {
@@ -115,9 +111,6 @@ function initPipes() {
 }
 
 initPipes();
-
-let pipeTransition = false; // flag to lock controls while warping
-// 
 
 let answerBlocks = []; // suspended blocks
 const blockW = 48, blockH = 34, blockGap = 18, blockAbove = 108;
@@ -184,6 +177,10 @@ function strikeBlock(index) {
   const b = answerBlocks[index];
   if (!b || b.struck) return;
   b.struck = true;
+  // Play Sound
+  coinSound.currentTime = 0;
+  coinSound.play();
+  //
   b.shake = 10;
   coinPops.push({ x: b.x + b.w / 2, y: b.y - 6, vy: -3.6, life: 0, alpha: 1 });
   if (now() - lastSelectionTime < 350) return;
@@ -355,7 +352,12 @@ layoutAnswerBlocks();
     if (keys['ArrowLeft'] || keys['a']) mario.x -= mario.speed;
     if (keys['ArrowRight'] || keys['d']) mario.x += mario.speed;
     if ((keys['ArrowUp'] || keys['w']) && mario.onGround) {
-      mario.vy = -7.6; mario.onGround = false;
+      mario.vy = -7.6; 
+      mario.onGround = false;
+      // Play Sound
+      jumpSound.currentTime = 0; // rewind if still playing
+      jumpSound.play();
+      //
     }
     mario.x = clamp(mario.x, 6, W - mario.w - 6);
     mario.vy += gravity;
@@ -389,6 +391,10 @@ layoutAnswerBlocks();
       g.bob += 0.04;
       if (rectsCollide(mario, g) && !mario.shocked) {
         mario.shocked = true;
+        // Play Sound
+        hitSound.currentTime = 0;
+        hitSound.play();
+        //
         // recoil
         mario.x += (mario.x < g.x) ? -20 : 20;
         mario.vy = -5.2;
@@ -501,49 +507,6 @@ layoutAnswerBlocks();
     ctx.strokeRect(px, py - p.h, p.r*2, p.h);
     ctx.strokeRect(px - 4, py - p.h - 14, p.r*2 + 8, 14);
   }
-
-  // // --- Pipe warp interaction ---
-  // if (!pipeTransition) {
-  //   for (const p of pipes) {
-  //     const topY = p.y - p.h - 14;
-  //     if (
-  //       mario.y + mario.h <= topY + 6 &&
-  //       mario.y + mario.h >= topY - 6 &&
-  //       mario.x + mario.w/2 >= p.x - 4 &&
-  //       mario.x + mario.w/2 <= p.x + p.r*2 + 4 &&
-  //       mario.vy >= 0
-  //     ) 
-  //     {
-  //       pipeTransition = true;
-  //       let targets = pipes.filter(other => other.side !== p.side);
-  //       let target = targets[Math.floor(Math.random() * targets.length)];
-  
-  //       // sink down animation
-  //       let sink = setInterval(() => {
-  //         mario.y += 2;
-  //         if (mario.y > p.y) {
-  //           clearInterval(sink);
-  
-  //           // teleport to opposite pipe
-  //           mario.x = target.x + target.r - mario.w/2;
-  //           mario.y = target.y;
-  
-  //           // rise out
-  //           let riseCount = 0;
-  //           let rise = setInterval(() => {
-  //             mario.y -= 2;
-  //             riseCount++;
-  //             if (riseCount > 20) {
-  //               clearInterval(rise);
-  //               pipeTransition = false;
-  //             }
-  //           }, 30);
-  //         }
-  //       }, 30);
-  //     }
-  //   }
-  // }
-  // 
   
   // draw suspended answer blocks
   for (const b of answerBlocks) {
