@@ -66,6 +66,14 @@ const hitSound  = new Audio('sounds/hit.mp3');
 jumpSound.volume = 0.6;
 coinSound.volume = 0.6;
 hitSound.volume  = 0.6;
+
+// --- Sound toggle ---
+let soundEnabled = true;
+const soundToggleBtn = document.getElementById("soundToggle");
+soundToggleBtn.addEventListener("click", () => {
+  soundEnabled = !soundEnabled;
+  soundToggleBtn.textContent = soundEnabled ? "🔊" : "🔇";
+});
 // --- Sounds ---
 
 //// Function Declarations ////
@@ -178,8 +186,10 @@ function strikeBlock(index) {
   if (!b || b.struck) return;
   b.struck = true;
   // Play Sound
-  coinSound.currentTime = 0;
-  coinSound.play();
+  if (soundEnabled) {
+    coinSound.currentTime = 0;
+    coinSound.play();
+  }
   //
   b.shake = 10;
   coinPops.push({ x: b.x + b.w / 2, y: b.y - 6, vy: -3.6, life: 0, alpha: 1 });
@@ -355,8 +365,10 @@ layoutAnswerBlocks();
       mario.vy = -7.6; 
       mario.onGround = false;
       // Play Sound
-      jumpSound.currentTime = 0; // rewind if still playing
-      jumpSound.play();
+      if (soundEnabled) {
+        jumpSound.currentTime = 0; // rewind if still playing
+        jumpSound.play();
+      }
       //
     }
     mario.x = clamp(mario.x, 6, W - mario.w - 6);
@@ -392,8 +404,10 @@ layoutAnswerBlocks();
       if (rectsCollide(mario, g) && !mario.shocked) {
         mario.shocked = true;
         // Play Sound
-        hitSound.currentTime = 0;
-        hitSound.play();
+        if (soundEnabled) {
+          hitSound.currentTime = 0;
+          hitSound.play();
+        }
         //
         // recoil
         mario.x += (mario.x < g.x) ? -20 : 20;
