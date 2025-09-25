@@ -61,11 +61,13 @@ const goombas = [
 const jumpSound = new Audio('sounds/jump.mp3');
 const coinSound = new Audio('sounds/coin.mp3');
 const hitSound  = new Audio('sounds/hit.mp3');
+const winSound = new Audio('sounds/win.mp3');
 
-// optional: lower default volume
-jumpSound.volume = 0.6;
-coinSound.volume = 0.6;
-hitSound.volume  = 0.6;
+// Default volume
+jumpSound.volume = 0.5;
+coinSound.volume = 0.5;
+hitSound.volume  = 0.5;
+winSound.volume = 0.6;
 
 // --- Sound toggle ---
 let soundEnabled = true;
@@ -286,6 +288,10 @@ function finishSurvey() {
   mario.vy = 0;
   mario.onGround = true;
 
+  // Play victory sound
+  winSound.currentTime = 0;
+  winSound.play();
+  
   submitAnonymizedResults(payload).then(success => {
     openPrompt.classList.add('hidden');
     endScreen.classList.remove('hidden');
