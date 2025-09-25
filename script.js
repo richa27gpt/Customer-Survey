@@ -615,14 +615,19 @@ function drawPlayer(x, y, w, h) {
 
     // 😀 Mouth: small smile during survey, big laugh at end
     if (surveyDone) {
-      ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(x + w*0.5, y + h*0.66, 11, 0.15, Math.PI - 0.15);
-      ctx.stroke();
-      ctx.fillStyle = '#b33';
-      ctx.beginPath();
-      ctx.ellipse(x + w*0.5, y + h*0.72, 9, 6, 0, 0, Math.PI*2);
-      ctx.fill();
+      // ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 2;
+      // ctx.beginPath();
+      // ctx.arc(x + w*0.5, y + h*0.66, 11, 0.15, Math.PI - 0.15);
+      // ctx.stroke();
+      // ctx.fillStyle = '#b33';
+      // ctx.beginPath();
+      // ctx.ellipse(x + w*0.5, y + h*0.72, 9, 6, 0, 0, Math.PI*2);
+      // ctx.fill();
+      ctx.font = `${Math.floor(h * 0.9)}px serif`; // size relative to Mario
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("😄", x + w * 0.5, y + h * 0.65);
+      
     } else {
       ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 1.2;
       ctx.beginPath();
