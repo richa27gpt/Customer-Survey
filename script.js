@@ -506,21 +506,21 @@ layoutAnswerBlocks();
   if (!pipeTransition) {
     for (const p of pipes) {
       const topY = p.y - p.h - 14;
-      // if (
-      //   mario.y + mario.h <= topY + 6 &&
-      //   mario.y + mario.h >= topY - 6 &&
-      //   mario.x + mario.w/2 >= p.x - 4 &&
-      //   mario.x + mario.w/2 <= p.x + p.r*2 + 4 &&
-      //   mario.vy >= 0
-      // ) 
-      //Boost Mario's Jump
       if (
-        mario.y + mario.h >= topY - 20 &&   // allow up to 20px above
-        mario.y + mario.h <= topY + 12 &&   // allow a little below
-        mario.x + mario.w/2 >= p.x - 10 &&  // sideways margin
-        mario.x + mario.w/2 <= p.x + p.r*2 + 10 &&
+        mario.y + mario.h <= topY + 6 &&
+        mario.y + mario.h >= topY - 6 &&
+        mario.x + mario.w/2 >= p.x - 4 &&
+        mario.x + mario.w/2 <= p.x + p.r*2 + 4 &&
         mario.vy >= 0
-      )
+      ) 
+      
+      // if (
+      //   mario.y + mario.h >= topY - 20 &&   // allow up to 20px above
+      //   mario.y + mario.h <= topY + 12 &&   // allow a little below
+      //   mario.x + mario.w/2 >= p.x - 10 &&  // sideways margin
+      //   mario.x + mario.w/2 <= p.x + p.r*2 + 10 &&
+      //   mario.vy >= 0
+      // )
       {
         pipeTransition = true;
         let targets = pipes.filter(other => other.side !== p.side);
