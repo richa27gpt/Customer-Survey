@@ -1,4 +1,4 @@
-// script.js - updates: random goomba movement; pipes only on right; tree/branch resting platform on left; Mario can rest without goomba hits
+// script.js - updates: random goomba movement; pipes only on right and always 3 with random heights; improved tree/branch design and Mario can reach branch
 
 // ---------- Configuration ----------
 const SINGLE_SUBMIT = false;
@@ -53,7 +53,7 @@ const promptSubmit = document.getElementById('promptSubmit');
 const endScreen = document.getElementById('endScreen');
 
 // ---------- Game entities ----------
-const gravity = 0.38;
+const gravity = 0.36;
 const mario = {
   x: 80, y: H - 28 - 36, w: 34, h: 36, vy: 0, onGround: true, speed: 2.4, color: '#e84c3d',
   bob: 0,
@@ -66,18 +66,17 @@ const goombas = [
   { x: 670, y: H - 28 - 20, w: 22, h: 20, dir: -1, spd: 0.96, bob: 0, lastChange: 0 }
 ];
 
-// --- Tree resting platform (branch) ---
-// Platform is a horizontal branch at fixed position (left side)
+// --- Tree resting platform (better design and reachable branch) ---
 const tree = {
-  x: 26,
-  w: 28,
-  h: 80,
-  branchY: H - 28 - 78,
-  branchW: 76,
-  branchH: 14
+  x: 54, // More centered
+  w: 28, // trunk width
+  h: 108, // trunk height (taller for better visuals)
+  branchY: H - 28 - 46, // LOWER the branch (was 78, now 46)
+  branchW: 90, // longer branch
+  branchH: 14  // thicker branch
 };
 const branchRect = {
-  x: tree.x + tree.w - 2,
+  x: tree.x + tree.w - 7, // branch starts farther right of trunk for realism
   y: tree.branchY,
   w: tree.branchW,
   h: tree.branchH
@@ -112,17 +111,15 @@ function initClouds(){
 }
 initClouds();
 
-// --- Pipes ONLY on the right! ---
+// --- Pipes: always 3, only on right, random heights ---
 let pipes = [];
 function initPipes() {
   pipes = [];
-  // right side pipes (1–3)
-  const rightCount = 1 + Math.floor(Math.random() * 3);
-  for (let i = 0; i < rightCount; i++) {
+  for (let i = 0; i < 3; i++) { // always 3 pipes
     pipes.push({
       x: W - 80 - i * 60,
       y: H - 28,
-      h: 40 + Math.random() * 20,
+      h: 40 + Math.random() * 38,
       r: 22,
       side: "right"
     });
@@ -395,7 +392,7 @@ layoutAnswerBlocks();
     if (keys['ArrowLeft'] || keys['a']) mario.x -= mario.speed;
     if (keys['ArrowRight'] || keys['d']) mario.x += mario.speed;
     if ((keys['ArrowUp'] || keys['w']) && mario.onGround) {
-      mario.vy = -7.6;
+      mario.vy = -9.2; // STRONGER jump for branch!
       mario.onGround = false;
       if (soundEnabled) {
         jumpSound.currentTime = 0;
@@ -538,18 +535,50 @@ layoutAnswerBlocks();
 
   ctx.fillStyle = '#3fa34a'; ctx.fillRect(0, H - 28, W, 28);
 
-  // --- Draw tree and branch ---
-  ctx.fillStyle = "#9d6b1a";
-  ctx.fillRect(tree.x, H - 28 - tree.h, tree.w, tree.h);
+  // --- Draw improved tree with canopy and natural branch ---
+  // Trunk (rounded)
+  ctx.save();
+  ctx.fillStyle = "#a97735";
   ctx.beginPath();
-  ctx.arc(tree.x + tree.w/2, H - 28 - tree.h + 14, 30, Math.PI, Math.PI*2);
-  ctx.fillStyle = "#3cb34a";
+  ctx.moveTo(tree.x + tree.w/2, H - 28);
+  ctx.lineTo(tree.x, H - 28 - tree.h + 12);
+  ctx.quadraticCurveTo(tree.x + tree.w/2, H - 28 - tree.h, tree.x + tree.w, H - 28 - tree.h + 12);
+  ctx.lineTo(tree.x + tree.w, H - 28);
+  ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = "#d9b480";
-  ctx.fillRect(branchRect.x, branchRect.y, branchRect.w, branchRect.h);
+  ctx.restore();
+
+  // Canopy (big green top with round blobs)
+  ctx.save();
   ctx.beginPath();
-  ctx.arc(branchRect.x + branchRect.w - 10, branchRect.y + 4, 12, 0, Math.PI*2);
-  ctx.fillStyle = "#5bc46f";
+  ctx.arc(tree.x + tree.w/2, H - 28 - tree.h + 25, 36, Math.PI*0.88, Math.PI*2.13, false);
+  ctx.arc(tree.x + tree.w/2 + 32, H - 28 - tree.h + 46, 26, Math.PI*1.12, Math.PI*2.1, false);
+  ctx.arc(tree.x + tree.w/2 - 30, H - 28 - tree.h + 46, 22, Math.PI*2.15, Math.PI*0.9, false);
+  ctx.closePath();
+  ctx.fillStyle = "#47b447";
+  ctx.shadowColor = "#2c7b2c";
+  ctx.shadowBlur = 16;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.restore();
+
+  // Branch (smooth, thick, brown with shadow)
+  ctx.save();
+  ctx.strokeStyle = "#b18753";
+  ctx.lineWidth = branchRect.h;
+  ctx.beginPath();
+  ctx.moveTo(branchRect.x, branchRect.y + branchRect.h/2 + 2);
+  ctx.bezierCurveTo(
+    branchRect.x + branchRect.w/3, branchRect.y + branchRect.h/2 - 6,
+    branchRect.x + branchRect.w*2/3, branchRect.y + branchRect.h/2 + 8,
+    branchRect.x + branchRect.w, branchRect.y + branchRect.h/2 - 2
+  );
+  ctx.stroke();
+  ctx.restore();
+  // Optional: leaves on branch
+  ctx.beginPath();
+  ctx.arc(branchRect.x + branchRect.w - 14, branchRect.y + 4, 12, 0, Math.PI*2);
+  ctx.fillStyle = "#63de63";
   ctx.fill();
 
   // --- Draw only right-side pipes! ---
