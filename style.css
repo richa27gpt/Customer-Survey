@@ -165,7 +165,26 @@ canvas#gameCanvas{
   box-shadow:0 0 6px rgba(30,136,229,0.4);
 }
 
-#promptSubmit{
+.prompt-actions {
+  text-align: right;   /* ✅ aligns the button to the right */
+  margin-top: 12px;
+}
+
+#promptSubmit {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #1e88e5;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+#promptSubmit:hover { background:#1565c0; transform:translateY(-2px); }
+#promptSubmit:active { transform:translateY(1px); }
+
+/* #promptSubmit{
   margin-top:16px;
   padding:10px 18px;
   border:none;
@@ -178,7 +197,7 @@ canvas#gameCanvas{
   transition:background 0.2s, transform 0.15s;
 }
 #promptSubmit:hover{ background:#1565c0; transform:translateY(-2px); }
-#promptSubmit:active{ transform:translateY(1px); }
+#promptSubmit:active{ transform:translateY(1px); } */
 
 /* =========================
    End Screen (Thank-you)
