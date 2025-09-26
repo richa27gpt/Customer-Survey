@@ -125,7 +125,7 @@ canvas#gameCanvas{
   top: 140px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.5); /* lighter opacity for stronger glass effect */
+  background: rgba(255, 255, 255, 0.4); /* lighter opacity for stronger glass effect */
   border-radius: 14px;
   padding: 24px 30px;
   width: 500px;
@@ -135,7 +135,7 @@ canvas#gameCanvas{
   z-index: 1000;
 
   /* 🔑 Frosted glass effect */
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(5px) saturate(140%);
   backdrop-filter: blur(12px) saturate(140%);
 }
 #openPrompt.hidden{ display:none; }
