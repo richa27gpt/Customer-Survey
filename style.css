@@ -125,7 +125,7 @@ canvas#gameCanvas{
   top: 140px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.6); /* lighter opacity for stronger glass effect */
+  background: rgba(255, 255, 255, 0.5); /* lighter opacity for stronger glass effect */
   border-radius: 14px;
   padding: 24px 30px;
   width: 500px;
