@@ -1,7 +1,7 @@
-// script.js - Mario can rest on a wooden box to escape Goombas; 3 pipes only on right, random heights, instructions updated
+// script.js - v3: Angry Birds-style wooden box, more/faster clouds, box moved toward center, pipes only on right
 
 // ---------- Configuration ----------
-const SINGLE_SUBMIT = false; // set to true to re-enable "only once per browser" (uses localStorage)
+const SINGLE_SUBMIT = false;
 const LOCAL_KEY = 'survey_completed_v1';
 const LOCAL_RESPONSES_KEY = 'survey_responses';
 
@@ -43,7 +43,7 @@ const startBtn = document.getElementById("startBtn");
 // ---- INSTRUCTIONS UPDATE
 const instructionsBox = document.getElementById("instructions");
 if (instructionsBox) {
-  instructionsBox.innerHTML += "<br>- <b>Tip:</b> Mario can rest safely on the <span style='color: #b97a56'>wooden box</span> at the left side of the screen to avoid Goombas while you read/think!";
+  instructionsBox.innerHTML += "<br>- <b>Tip:</b> Mario can rest on the <span style='color: #b97a56'>wooden box</span> at the left side of the screen (looks like Angry Birds wood) to avoid Goombas while you read/think!";
 }
 
 startBtn.addEventListener("click", () => {
@@ -61,17 +61,17 @@ const endScreen = document.getElementById('endScreen');
 // ---------- Game entities ----------
 const gravity = 0.38;
 const mario = {
-  x: 80, y: H - 28 - 36, w: 34, h: 36, vy: 0, onGround: true, speed: 2.4, color: '#e84c3d',
+  x: 160, y: H - 28 - 36, w: 34, h: 36, vy: 0, onGround: true, speed: 2.4, color: '#e84c3d',
   bob: 0,
   shocked: false,
   stars: []
 };
 
-// Wooden box for Mario to rest (left side)
+// Wooden box for Mario to rest (now fancier and more central)
 const box = {
-  x: 30,
+  x: 160, // moved more toward the center, tweak as needed
   y: H - 28 - 48,
-  w: 60,
+  w: 62,
   h: 48
 };
 
@@ -86,8 +86,6 @@ const jumpSound = new Audio('sounds/jump.mp3');
 const coinSound = new Audio('sounds/coin.mp3');
 const hitSound  = new Audio('sounds/hit.mp3');
 const winSound = new Audio('sounds/win.mp3');
-
-// Default volume
 jumpSound.volume = 0.5;
 coinSound.volume = 0.5;
 hitSound.volume  = 0.5;
@@ -101,12 +99,18 @@ soundToggleBtn.addEventListener("click", () => {
   soundToggleBtn.textContent = soundEnabled ? "🔊" : "🔇";
 });
 
-// --- Moving clouds (slow drift) ---
+// --- Moving clouds (more quantity, faster speed) ---
 let clouds = [];
 function initClouds(){
   clouds = [];
-  for(let i=0;i<8;i++){
-    clouds.push({x: Math.random()*W, y: 30 + Math.random() * (H * 0.3), s: 0.6+Math.random()*0.9, speed: 0.03+Math.random()*0.08, t: Math.random()*Math.PI*2});
+  for(let i=0;i<16;i++){ // more clouds
+    clouds.push({
+      x: Math.random()*W,
+      y: 20 + Math.random() * (H * 0.3),
+      s: 0.5 + Math.random()*1.1,
+      speed: 0.08 + Math.random()*0.16, // faster clouds
+      t: Math.random()*Math.PI*2
+    });
   }
 }
 initClouds();
@@ -189,7 +193,7 @@ function layoutAnswerBlocks() {
   const y = H - 28 - blockAbove - blockH;
   answerBlocks = [];
   for (let i = 0; i < n; i++) {
-    const val = n - i; // reversed
+    const val = n - i;
     const smile = val >= Math.ceil(n * 0.8) ? '😄' : (val >= Math.ceil(n * 0.5) ? '🙂' : '😐');
     answerBlocks.push({ x: startX + i * (blockW + blockGap), y: y, w: blockW, h: blockH, val: val, struck: false, shake: 0, smile });
   }
@@ -216,8 +220,6 @@ function selectScale(val) {
   document.getElementById('backBtn').style.display = "inline-block";
   advanceQuestion();
 }
-
-// Back Button
 function goBackOneQuestion() {
   if (lastScaleQuestion >= 0 && currentQ > 0) {
     answers.pop();
@@ -229,7 +231,6 @@ function goBackOneQuestion() {
     lastScaleQuestion = -1;
   }
 }
-
 function advanceQuestion() {
   currentQ++;
   mario.x = clamp(mario.x, 48, W - 72);
@@ -239,8 +240,6 @@ function advanceQuestion() {
     layoutAnswerBlocks();
   }
 }
-
-// ---------- Text prompt ----------
 function showTextPrompt(qText, callback) {
   showingPrompt = true;
   openPrompt.classList.remove('hidden');
@@ -263,7 +262,7 @@ function showTextPrompt(qText, callback) {
   document.getElementById('backBtn').style.display = "none";
 }
 
-// ---------- Server submission (anonymous) with local fallback ----------
+// ---------- Server submission ----------
 async function submitAnonymizedResults(payload) {
   try {
     const resp = await fetch('/api/submit', {
@@ -283,7 +282,6 @@ async function submitAnonymizedResults(payload) {
     return false;
   }
 }
-
 function storeLocalBackup(payload) {
   try {
     const raw = localStorage.getItem(LOCAL_RESPONSES_KEY);
@@ -334,7 +332,6 @@ function finishSurvey() {
   });
   document.getElementById('backBtn').style.display = "none";
 }
-
 function startEndCelebration() {
   if (endCelebrationRunning) return;
   endCelebrationRunning = true;
@@ -342,12 +339,10 @@ function startEndCelebration() {
   endSpawnInterval = setInterval(() => { spawnCelebration(2, 6); }, 1400);
   endJumpTimer = 0;
 }
-
 function stopEndCelebration() {
   endCelebrationRunning = false;
   if (endSpawnInterval) { clearInterval(endSpawnInterval); endSpawnInterval = null; }
 }
-
 function spawnCelebration(balloonsCount = 8, fireworksCount = 10) {
   const colors = ['#ffd35c', '#64b5f6', '#ff8a65', '#aed581', '#e57373', '#ba68c8'];
   for (let i = 0; i < balloonsCount; i++) {
@@ -363,7 +358,6 @@ function spawnCelebration(balloonsCount = 8, fireworksCount = 10) {
   for (let i = 0; i < fireworksCount; i++)
     createFirework(80 + Math.random() * (W - 160), 80 + Math.random() * 140);
 }
-
 function createFirework(x, y) {
   const particles = [];
   const count = 16 + Math.round(Math.random() * 28);
@@ -403,7 +397,7 @@ layoutAnswerBlocks();
     }
     mario.x = clamp(mario.x, 6, W - mario.w - 6);
 
-    // --- Gravity, platforms (box & pipes), ground ---
+    // Gravity, platforms (box & pipes), ground
     mario.vy += gravity;
     mario.y += mario.vy;
     const onBox = (
@@ -538,11 +532,8 @@ layoutAnswerBlocks();
   drawCloud(90, 64, 0.9); drawCloud(260, 48, 0.6); drawCloud(720, 84, 0.8);
   ctx.fillStyle = '#3fa34a'; ctx.fillRect(0, H - 28, W, 28);
 
-  // Draw wooden box
-  ctx.fillStyle = "#b97a56";
-  ctx.fillRect(box.x, box.y, box.w, box.h);
-  ctx.strokeStyle = "#7c4f26"; ctx.lineWidth = 3;
-  ctx.strokeRect(box.x, box.y, box.w, box.h);
+  // Draw fancier wooden box (Angry Birds style)
+  drawWoodenBox(box);
 
   // Draw right-side pipes
   for (const p of pipes) {
@@ -600,17 +591,11 @@ layoutAnswerBlocks();
     ctx.fill();
   }
 
-  // stars (if any)
   updateStars();
   drawStars();
-
-  // Mario
   drawPlayer(mario.x, mario.y, mario.w, mario.h);
 
-  // Question panel
   if (!surveyDone) drawQuestionPanel();
-
-  // fireworks & balloons
   for (const fw of fireworks) {
     for (const p of fw.particles) {
       ctx.save(); ctx.globalAlpha = Math.max(0, 1 - p.life / 80); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 3.2, 0, Math.PI * 2); ctx.fill(); ctx.restore();
@@ -650,8 +635,49 @@ function roundRect(ctx, x, y, w, h, r, fill, stroke) {
   if (fill) ctx.fill();
   if (stroke) ctx.stroke();
 }
+// --- Fancy wooden box (Angry Birds style) ---
+function drawWoodenBox(box) {
+  ctx.save();
+  // Base box
+  ctx.fillStyle = "#b97a56";
+  ctx.strokeStyle = "#7c4f26";
+  ctx.lineWidth = 4;
+  ctx.shadowColor = "#65432155";
+  ctx.shadowBlur = 8;
+  ctx.fillRect(box.x, box.y, box.w, box.h);
+  ctx.strokeRect(box.x, box.y, box.w, box.h);
 
-// --- Stars helpers (ouch effect) ---
+  // Planks (vertical)
+  ctx.lineWidth = 2;
+  for (let i = 1; i < 4; i++) {
+    let px = box.x + (box.w / 4) * i;
+    ctx.beginPath();
+    ctx.moveTo(px, box.y + 4);
+    ctx.lineTo(px, box.y + box.h - 4);
+    ctx.strokeStyle = "#e2b07a";
+    ctx.stroke();
+  }
+
+  // Plank highlights (top/bottom lines)
+  ctx.strokeStyle = "#e2b07a";
+  ctx.beginPath();
+  ctx.moveTo(box.x + 3, box.y + 8);
+  ctx.lineTo(box.x + box.w - 3, box.y + 8);
+  ctx.moveTo(box.x + 3, box.y + box.h - 8);
+  ctx.lineTo(box.x + box.w - 3, box.y + box.h - 8);
+  ctx.stroke();
+
+  // Nails (dots)
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath();
+    ctx.arc(box.x + (box.w / 4) * i + box.w / 8, box.y + 12, 2, 0, Math.PI*2);
+    ctx.arc(box.x + (box.w / 4) * i + box.w / 8, box.y + box.h - 12, 2, 0, Math.PI*2);
+    ctx.fillStyle = "#775c3b";
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
 function updateStars(){
   mario.stars.forEach(s=>{ s.x+=s.dx; s.y+=s.dy; s.dy+=0.1; s.life--; s.angle+=0.22; });
   mario.stars = mario.stars.filter(s=>s.life>0);
@@ -672,8 +698,6 @@ function drawStars(){
     ctx.restore();
   });
 }
-
-// Mario drawing (v9 style)
 function drawPlayer(x, y, w, h) {
   ctx.save();
   ctx.fillStyle = '#e84c3d';
@@ -724,7 +748,6 @@ function drawPlayer(x, y, w, h) {
   }
   ctx.restore();
 }
-
 function drawQuestionPanel() {
   const panelW = clamp(820, 320, W - 48);
   const panelH = 92;
@@ -745,7 +768,6 @@ function drawQuestionPanel() {
     : "Move to the center to type your response when prompted. You can rest Mario on the wooden box to avoid Goombas while thinking!";
   ctx.fillText(hint, px + 18, py + panelH - 12);
 }
-
 function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   const words = text.split(' '); let line = '';
   for (let n = 0; n < words.length; n++) {
@@ -754,8 +776,6 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   }
   ctx.fillText(line, x, y);
 }
-
 document.getElementById('backBtn').addEventListener('click', goBackOneQuestion);
-
 const originalAdvance = advanceQuestion;
 advanceQuestion = function () { originalAdvance(); layoutAnswerBlocks(); };
