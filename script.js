@@ -149,7 +149,19 @@ let showingPrompt = false;
 let lastSelectionTime = 0;
 
 // Back Button
+let _activePromptHandlers = null;
 let lastScaleQuestion = -1;
+function updateBackButtonVisibility() {
+  const btn = document.getElementById('backBtn');
+  if (!btn) return;
+  if (surveyDone) { btn.style.display = "none"; return; }
+  // Show if the last answered question was a scale (box)
+  if (lastScaleQuestion >= 0 && currentQ > 0) {
+    btn.style.display = "inline-block";
+  } else {
+    btn.style.display = "none";
+  }
+}
 
 // end-screen celebration running flag & timers
 let endCelebrationRunning = false;
@@ -243,25 +255,38 @@ function strikeBlock(index) {
 function selectScale(val) {
   answers.push(val);
   lastScaleQuestion = currentQ; // remember this question index for Back Button
-  document.getElementById('backBtn').style.display = "inline-block"; //Show/Hide Back Button logic
+  // document.getElementById('backBtn').style.display = "inline-block"; //Show/Hide Back Button logic
+  updateBackButtonVisibility(); //Show/Hide Back Button logic
   advanceQuestion();
 }
 
 // Back Button
 function goBackOneQuestion() {
   if (lastScaleQuestion >= 0 && currentQ > 0) {
-    // remove last answer
-    answers.pop();
-    currentQ = lastScaleQuestion;  // step back
-    layoutAnswerBlocks();          // re-draw boxes
+    // If a prompt is open, close it and remove listeners
+    if (!openPrompt.classList.contains('hidden')) {
+      if (_activePromptHandlers) {
+        promptSubmit.removeEventListener('click', _activePromptHandlers.handler);
+        window.removeEventListener('keypress', _activePromptHandlers.onEnter);
+        _activePromptHandlers = null;
+      }
+      openPrompt.classList.add('hidden');
+      showingPrompt = false;
+      promptInput.blur();
+    }
 
-    // Reset Mario position
+    // Step back to the last scale/box question
+    answers.pop();
+    currentQ = lastScaleQuestion;
+    layoutAnswerBlocks();
+
+    // Reset Mario position if you like
     mario.x = W/2 - mario.w/2;
     mario.y = H - 28 - mario.h;
 
-    // hide back button until next answer
-    document.getElementById('backBtn').style.display = "none";
+    // Single-use back: clear pointer and update UI
     lastScaleQuestion = -1;
+    updateBackButtonVisibility();
   }
 }
 
@@ -274,6 +299,7 @@ function advanceQuestion() {
   else {
     layoutAnswerBlocks();
   }
+  updateBackButtonVisibility();
 }
 
 // ---------- Text prompt ----------
@@ -293,13 +319,16 @@ function showTextPrompt(qText, callback) {
     showingPrompt = false;
     promptSubmit.removeEventListener('click', handler);
     window.removeEventListener('keypress', onEnter);
+    _activePromptHandlers = { handler, onEnter };   // remember to remove if backing out
+    updateBackButtonVisibility();
     callback(v);
   };
   function onEnter(e) { if (e.key === 'Enter') handler(); }
   promptSubmit.addEventListener('click', handler);
   window.addEventListener('keypress', onEnter);
   
-  document.getElementById('backBtn').style.display = "none"; //Show/Hide logic for Back Button
+  // document.getElementById('backBtn').style.display = "none"; //Show/Hide logic for Back Button
+  updateBackButtonVisibility(); //Show/Hide logic for Back Button
 }
 
 // ---------- Server submission (anonymous) with local fallback ----------
@@ -379,7 +408,8 @@ function finishSurvey() {
     endScreen.classList.remove('hidden');
     startEndCelebration();
   });
-  document.getElementById('backBtn').style.display = "none"; //Show/Hide logic for Back Button
+  // document.getElementById('backBtn').style.display = "none"; //Show/Hide logic for Back Button
+  updateBackButtonVisibility(); //Show/Hide logic for Back Button
 }
 
 // ---------- Continuous Celebration (keeps spawning) ----------
