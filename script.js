@@ -61,10 +61,10 @@ const mario = {
   shocked: false,
   stars: []
 };
-// goombas
+// goombas (now with random movement!)
 const goombas = [
-  { x: 390, y: H - 28 - 20, w: 22, h: 20, dir: 1, spd: 1.06, bob: 0 },
-  { x: 670, y: H - 28 - 20, w: 22, h: 20, dir: -1, spd: 0.96, bob: 0 }
+  { x: 390, y: H - 28 - 20, w: 22, h: 20, dir: 1, spd: 1.06, bob: 0, lastChange: 0 },
+  { x: 670, y: H - 28 - 20, w: 22, h: 20, dir: -1, spd: 0.96, bob: 0, lastChange: 0 }
 ];
 
 // --- Sounds ---
@@ -481,19 +481,33 @@ layoutAnswerBlocks();
       mario.y = H - 28 - mario.h; mario.vy = 0; mario.onGround = true;
     } else mario.onGround = false;
 
-    // goombas motion & collision
+    // goombas motion & collision (MODIFIED: now random movement!)
     for (let g of goombas) {
       if (gameStarted) {
+        // Randomly change direction or speed every 2–3 seconds
+        if (!g.lastChange || (performance.now() - g.lastChange) > 2000 + Math.random() * 1000) {
+          if (Math.random() < 0.4) { // 40% chance to change direction
+            g.dir *= -1;
+          }
+          if (Math.random() < 0.7) { // 70% chance to change speed
+            g.spd = 0.7 + Math.random() * 1.2; // speed between 0.7 and 1.9
+          }
+          g.lastChange = performance.now();
+        }
         g.x += g.dir * g.spd;
-        if (g.x <= 12 || g.x + g.w >= W - 12) g.dir *= -1;
+        if (g.x <= 12 || g.x + g.w >= W - 12) {
+          g.dir *= -1;
+          g.spd = 0.7 + Math.random() * 1.2;
+          g.x = Math.max(12, Math.min(g.x, W - 12 - g.w));
+        }
         g.bob += 0.04;
       }
-        if (rectsCollide(mario, g) && !mario.shocked) {
-          mario.shocked = true;
-          // Play Sound
-          if (soundEnabled) {
-            hitSound.currentTime = 0;
-            hitSound.play();
+      if (rectsCollide(mario, g) && !mario.shocked) {
+        mario.shocked = true;
+        // Play Sound
+        if (soundEnabled) {
+          hitSound.currentTime = 0;
+          hitSound.play();
         }
         //
         // recoil
@@ -512,11 +526,6 @@ layoutAnswerBlocks();
     if (q && q.type === 'text') {
       const centerLeft = W * 0.32, centerRight = W * 0.68;
       if (mario.onGround && (mario.x + mario.w / 2) >= centerLeft && (mario.x + mario.w / 2) <= centerRight && !showingPrompt) {
-        // setTimeout(() => {
-        //   if (!showingPrompt && !surveyDone && questions[currentQ] && questions[currentQ].type === 'text') {
-        //     showTextPrompt(questions[currentQ].text, (resp) => { answers.push(resp); advanceQuestion(); });
-        //   }
-        // }, 220);
         if (!showingPrompt && !surveyDone && questions[currentQ] && questions[currentQ].type === 'text') {
           showTextPrompt(questions[currentQ].text, (resp) => { 
             answers.push(resp); 
