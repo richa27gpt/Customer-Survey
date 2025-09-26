@@ -151,6 +151,20 @@ let lastSelectionTime = 0;
 // Back Button
 let _activePromptHandlers = null;
 let lastScaleQuestion = -1;
+
+function updateBackButtonVisibility() {
+  const btn = document.getElementById('backBtn');
+  if (!btn) return;
+  if (surveyDone) { btn.style.display = "none"; return; }
+  if (lastScaleQuestion >= 0 && currentQ > 0) {
+    btn.style.display = "inline-block";
+  } else {
+    btn.style.display = "none";
+  }
+}
+
+let _activePromptHandlers = null;
+
 function updateBackButtonVisibility() {
   const btn = document.getElementById('backBtn');
   if (!btn) return;
@@ -280,6 +294,25 @@ function goBackOneQuestion() {
     currentQ = lastScaleQuestion;
     layoutAnswerBlocks();
 
+    // Reset Mario position
+    mario.x = W/2 - mario.w/2;
+    mario.y = H - 28 - mario.h;
+
+    // Single-use back: clear pointer and update UI
+    lastScaleQuestion = -1;
+    updateBackButtonVisibility();
+  }
+}
+      openPrompt.classList.add('hidden');
+      showingPrompt = false;
+      promptInput.blur();
+    }
+
+    // Step back to the last scale/box question
+    answers.pop();
+    currentQ = lastScaleQuestion;
+    layoutAnswerBlocks();
+
     // Reset Mario position if you like
     mario.x = W/2 - mario.w/2;
     mario.y = H - 28 - mario.h;
@@ -298,7 +331,9 @@ function advanceQuestion() {
   if (currentQ >= questions.length) finishSurvey();
   else {
     layoutAnswerBlocks();
-  }
+  
+  updateBackButtonVisibility();
+}
   updateBackButtonVisibility();
 }
 
@@ -327,7 +362,8 @@ function showTextPrompt(qText, callback) {
   promptSubmit.addEventListener('click', handler);
   window.addEventListener('keypress', onEnter);
   
-  // document.getElementById('backBtn').style.display = "none"; //Show/Hide logic for Back Button
+  // updateBackButtonVisibility(); // ensure back button visible if last question was box
+  _activePromptHandlers = { handler, onEnter };
   updateBackButtonVisibility(); //Show/Hide logic for Back Button
 }
 
@@ -408,7 +444,8 @@ function finishSurvey() {
     endScreen.classList.remove('hidden');
     startEndCelebration();
   });
-  // document.getElementById('backBtn').style.display = "none"; //Show/Hide logic for Back Button
+  // updateBackButtonVisibility(); // ensure back button visible if last question was box
+  _activePromptHandlers = { handler, onEnter };
   updateBackButtonVisibility(); //Show/Hide logic for Back Button
 }
 
