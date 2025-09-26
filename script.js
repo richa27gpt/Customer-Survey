@@ -280,6 +280,9 @@ function advanceQuestion() {
 function showTextPrompt(qText, callback) {
   showingPrompt = true;
   openPrompt.classList.remove('hidden');
+  // place the prompt box below the question panel
+  openPrompt.style.top = (document.querySelector("canvas").offsetTop + 140) + "px";
+
   promptTitle.textContent = qText;
   promptInput.value = "";
   promptInput.focus();
