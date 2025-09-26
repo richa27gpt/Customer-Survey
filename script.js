@@ -1,7 +1,7 @@
-// script.js - updates: random goomba movement; pipes only on right and always 3 with random heights; improved tree/branch design and Mario can reach branch
+// script.js - updates: improved end bouncing, balloons spread/colors, smiling Mario, eye movement on jump, admin link removed from end screen, resting box added for Mario
 
 // ---------- Configuration ----------
-const SINGLE_SUBMIT = false;
+const SINGLE_SUBMIT = false; // set to true to re-enable "only once per browser" (uses localStorage)
 const LOCAL_KEY = 'survey_completed_v1';
 const LOCAL_RESPONSES_KEY = 'survey_responses';
 
@@ -36,14 +36,28 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const W = canvas.width, H = canvas.height;
 
-// Instructions overlay
+// ---------- Instructions overlay ----------
 const overlay = document.getElementById("overlay");
 const startBtn = document.getElementById("startBtn");
 
+// --- Add instruction for wooden box resting spot ---
+const originalInstructions = overlay.innerHTML;
+overlay.innerHTML = `
+  <b>Instructions:</b>
+  <ul>
+    <li>Use <b>Arrow keys</b> or <b>WASD</b> to move and jump as Mario.</li>
+    <li>Jump up and strike a numbered box from below (or click a box) to answer.</li>
+    <li>Avoid the Goombas (brown obstacles) as touching them will shock Mario.</li>
+    <li><b>Rest Mario on the wooden box on the left side</b> by jumping onto it. While resting on the box, Goombas can't reach or hurt Mario. Use this to pause and think about your answer!</li>
+    <li>Move Mario off the box to resume playing.</li>
+    <li>Sound can be toggled with the 🔊/🔇 button.</li>
+  </ul>
+`;
+
 startBtn.addEventListener("click", () => {
   overlay.style.display = "none";
-  canvas.focus();
-  gameStarted = true;
+  canvas.focus();  // immediately give control to game
+  gameStarted = true;   // ✅ start game only now
 });
 
 const openPrompt = document.getElementById('openPrompt');
@@ -53,34 +67,23 @@ const promptSubmit = document.getElementById('promptSubmit');
 const endScreen = document.getElementById('endScreen');
 
 // ---------- Game entities ----------
-const gravity = 0.36;
+const gravity = 0.38;
 const mario = {
   x: 80, y: H - 28 - 36, w: 34, h: 36, vy: 0, onGround: true, speed: 2.4, color: '#e84c3d',
-  bob: 0,
+  bob: 0
+,
   shocked: false,
   stars: []
 };
+
+// --- Wooden box platform: placed on left, Mario can stand on it ---
+const box = { x: 38, y: H - 28 - 44, w: 60, h: 24 }; // x, y, width, height
+
 // goombas (random movement)
 const goombas = [
   { x: 390, y: H - 28 - 20, w: 22, h: 20, dir: 1, spd: 1.06, bob: 0, lastChange: 0 },
   { x: 670, y: H - 28 - 20, w: 22, h: 20, dir: -1, spd: 0.96, bob: 0, lastChange: 0 }
 ];
-
-// --- Tree resting platform (better design and reachable branch) ---
-const tree = {
-  x: 54, // More centered
-  w: 28, // trunk width
-  h: 108, // trunk height (taller for better visuals)
-  branchY: H - 28 - 46, // LOWER the branch (was 78, now 46)
-  branchW: 90, // longer branch
-  branchH: 14  // thicker branch
-};
-const branchRect = {
-  x: tree.x + tree.w - 7, // branch starts farther right of trunk for realism
-  y: tree.branchY,
-  w: tree.branchW,
-  h: tree.branchH
-};
 
 // --- Sounds ---
 const jumpSound = new Audio('sounds/jump.mp3');
@@ -93,7 +96,6 @@ coinSound.volume = 0.5;
 hitSound.volume  = 0.5;
 winSound.volume = 0.5;
 
-// --- Sound toggle ---
 let soundEnabled = true;
 const soundToggleBtn = document.getElementById("soundToggle");
 soundToggleBtn.addEventListener("click", () => {
@@ -101,7 +103,7 @@ soundToggleBtn.addEventListener("click", () => {
   soundToggleBtn.textContent = soundEnabled ? "🔊" : "🔇";
 });
 
-// --- Moving clouds (slow drift) ---
+// --- Clouds, pipes, blocks, other entities ---
 let clouds = [];
 function initClouds(){
   clouds = [];
@@ -111,28 +113,29 @@ function initClouds(){
 }
 initClouds();
 
-// --- Pipes: always 3, only on right, random heights ---
+// --- Pipes (removed right side, only left pipes remain for scenery!) ---
 let pipes = [];
 function initPipes() {
   pipes = [];
-  for (let i = 0; i < 3; i++) { // always 3 pipes
+  // only 1-2 left side pipes for scenery
+  const leftCount = 1 + Math.floor(Math.random() * 2);
+  for (let i = 0; i < leftCount; i++) {
     pipes.push({
-      x: W - 80 - i * 60,
+      x: 130 + i * 60,            // stagger horizontally, away from box
       y: H - 28,
-      h: 40 + Math.random() * 38,
+      h: 40 + Math.random() * 20,
       r: 22,
-      side: "right"
+      side: "left"
     });
   }
 }
 initPipes();
 
-let answerBlocks = [];
+let answerBlocks = []; // suspended blocks
 const blockW = 48, blockH = 34, blockGap = 18, blockAbove = 108;
 let coinPops = [];
 let fireworks = [];
 let balloons = [];
-
 let gameStarted = false;
 let currentQ = 0;
 let answers = [];
@@ -144,7 +147,7 @@ let endCelebrationRunning = false;
 let endJumpTimer = 0;
 let endSpawnInterval = null;
 
-// Input
+// Input handling
 const keys = Object.create(null);
 const BLOCKED = new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ']);
 function isTypingTarget(el) {
@@ -161,8 +164,6 @@ window.addEventListener('keyup', (e) => {
 window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
 canvas.setAttribute('tabindex', '0');
 canvas.addEventListener('mousedown', () => canvas.focus());
-
-// Mouse click selection for blocks
 canvas.addEventListener('mousedown', (e) => {
   if (surveyDone || showingPrompt) return;
   const rect = canvas.getBoundingClientRect();
@@ -181,8 +182,9 @@ canvas.addEventListener('mousedown', (e) => {
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const now = () => new Date().getTime();
 function rectsCollide(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
+function rectOnTop(a, b) { return a.x + a.w > b.x && a.x < b.x + b.w && Math.abs((a.y + a.h) - b.y) < 8; }
 
-// ---------- Layout answer blocks ----------
+// ---------- Layout answer blocks (reversed numbering, adds smileys) ----------
 function layoutAnswerBlocks() {
   const q = questions[currentQ];
   if (!q || q.type !== 'scale') { answerBlocks = []; return; }
@@ -235,10 +237,12 @@ function advanceQuestion() {
   mario.x = clamp(mario.x, 48, W - 72);
   mario.vy = 0; mario.onGround = true;
   if (currentQ >= questions.length) finishSurvey();
-  else layoutAnswerBlocks();
+  else {
+    layoutAnswerBlocks();
+  }
 }
 
-// Text prompt
+// ---------- Text prompt ----------
 function showTextPrompt(qText, callback) {
   showingPrompt = true;
   openPrompt.classList.remove('hidden');
@@ -261,7 +265,7 @@ function showTextPrompt(qText, callback) {
   document.getElementById('backBtn').style.display = "none";
 }
 
-// Submission
+// ---------- Server submission (anonymous) with local fallback ----------
 async function submitAnonymizedResults(payload) {
   try {
     const resp = await fetch('/api/submit', {
@@ -290,7 +294,7 @@ function storeLocalBackup(payload) {
   } catch (e) { /* ignore */ }
 }
 
-// End screen celebration
+// ---------- Finish: end screen + continuous celebration + mario excitement ----------
 function finishSurvey() {
   surveyDone = true;
   if (SINGLE_SUBMIT) {
@@ -375,9 +379,8 @@ function createFirework(x, y) {
   fireworks.push({ particles, age: 0 });
 }
 
-// ---------- Main Loop ----------
+// ---------- Main loop ----------
 layoutAnswerBlocks();
-
 (function mainLoop() {
   if (SINGLE_SUBMIT && localStorage.getItem(LOCAL_KEY) === '1' && !surveyDone) {
     surveyDone = true;
@@ -392,7 +395,7 @@ layoutAnswerBlocks();
     if (keys['ArrowLeft'] || keys['a']) mario.x -= mario.speed;
     if (keys['ArrowRight'] || keys['d']) mario.x += mario.speed;
     if ((keys['ArrowUp'] || keys['w']) && mario.onGround) {
-      mario.vy = -9.2; // STRONGER jump for branch!
+      mario.vy = -7.6;
       mario.onGround = false;
       if (soundEnabled) {
         jumpSound.currentTime = 0;
@@ -400,68 +403,24 @@ layoutAnswerBlocks();
       }
     }
     mario.x = clamp(mario.x, 6, W - mario.w - 6);
+    mario.vy += gravity;
+    mario.y += mario.vy;
 
-    // Tree branch platform collision
-    let onBranch = false;
-    if (
-      mario.vy >= 0 &&
-      mario.x + mario.w > branchRect.x + 2 &&
-      mario.x < branchRect.x + branchRect.w - 2 &&
-      prevY + mario.h <= branchRect.y + 4 &&
-      mario.y + mario.h >= branchRect.y + 2 &&
-      mario.y + mario.h <= branchRect.y + branchRect.h + 8
-    ) {
-      mario.y = branchRect.y - mario.h;
+    // --- Platform collision: ground and box ---
+    let onBox = false;
+    // Check if Mario lands on the box
+    if (rectOnTop(mario, box) && mario.vy >= 0) {
+      mario.y = box.y - mario.h;
       mario.vy = 0;
       mario.onGround = true;
-      onBranch = true;
+      onBox = true;
     }
+    // Check if Mario lands on ground
+    else if (mario.y + mario.h >= H - 28) {
+      mario.y = H - 28 - mario.h; mario.vy = 0; mario.onGround = true;
+    } else mario.onGround = false;
 
-    // Floor collision if not on branch
-    if (!onBranch) {
-      mario.vy += gravity;
-      mario.y += mario.vy;
-      if (mario.y + mario.h >= H - 28) {
-        mario.y = H - 28 - mario.h; mario.vy = 0; mario.onGround = true;
-      } else mario.onGround = false;
-    } else {
-      mario.vy = 0;
-      mario.onGround = true;
-    }
-
-    // Goombas motion & collision (do not collide if Mario is on branch)
-    for (let g of goombas) {
-      if (gameStarted) {
-        if (!g.lastChange || (performance.now() - g.lastChange) > 2000 + Math.random() * 1000) {
-          if (Math.random() < 0.4) g.dir *= -1;
-          if (Math.random() < 0.7) g.spd = 0.7 + Math.random() * 1.2;
-          g.lastChange = performance.now();
-        }
-        g.x += g.dir * g.spd;
-        if (g.x <= 12 || g.x + g.w >= W - 12) {
-          g.dir *= -1;
-          g.spd = 0.7 + Math.random() * 1.2;
-          g.x = Math.max(12, Math.min(g.x, W - 12 - g.w));
-        }
-        g.bob += 0.04;
-      }
-      // Only check collision if Mario is NOT on the branch
-      if (!onBranch && rectsCollide(mario, g) && !mario.shocked) {
-        mario.shocked = true;
-        if (soundEnabled) {
-          hitSound.currentTime = 0;
-          hitSound.play();
-        }
-        mario.x += (mario.x < g.x) ? -20 : 20;
-        mario.vy = -5.2;
-        for (let i = 0; i < 6; i++) {
-          mario.stars.push({ x: mario.x + mario.w/2, y: mario.y - 10, dx: (Math.random()-0.5)*2.2, dy: -2 - Math.random()*2.2, life: 36, angle: Math.random()*Math.PI*2 });
-        }
-        setTimeout(() => { mario.shocked = false; }, 500);
-      }
-    }
-
-    // Head-strike detection
+    // head-strike detection
     if (mario.vy < 0) {
       for (let i = 0; i < answerBlocks.length; i++) {
         const b = answerBlocks[i];
@@ -478,7 +437,39 @@ layoutAnswerBlocks();
       }
     }
 
-    // Text question auto-prompt
+    // goombas motion & collision (skip collision if Mario on box)
+    for (let g of goombas) {
+      if (gameStarted) {
+        if (!g.lastChange || (performance.now() - g.lastChange) > 2000 + Math.random() * 1000) {
+          if (Math.random() < 0.4) g.dir *= -1;
+          if (Math.random() < 0.7) g.spd = 0.7 + Math.random() * 1.2;
+          g.lastChange = performance.now();
+        }
+        g.x += g.dir * g.spd;
+        if (g.x <= 12 || g.x + g.w >= W - 12) {
+          g.dir *= -1;
+          g.spd = 0.7 + Math.random() * 1.2;
+          g.x = Math.max(12, Math.min(g.x, W - 12 - g.w));
+        }
+        g.bob += 0.04;
+      }
+      // Only check collision if Mario is not on box
+      if (!onBox && rectsCollide(mario, g) && !mario.shocked) {
+        mario.shocked = true;
+        if (soundEnabled) {
+          hitSound.currentTime = 0;
+          hitSound.play();
+        }
+        mario.x += (mario.x < g.x) ? -20 : 20;
+        mario.vy = -5.2;
+        for (let i = 0; i < 6; i++) {
+          mario.stars.push({ x: mario.x + mario.w/2, y: mario.y - 10, dx: (Math.random()-0.5)*2.2, dy: -2 - Math.random()*2.2, life: 36, angle: Math.random()*Math.PI*2 });
+        }
+        setTimeout(() => { mario.shocked = false; }, 500);
+      }
+    }
+
+    // text question auto-prompt
     const q = questions[currentQ];
     if (q && q.type === 'text') {
       const centerLeft = W * 0.32, centerRight = W * 0.68;
@@ -493,6 +484,7 @@ layoutAnswerBlocks();
     }
   }
 
+  // End-screen behavior: excited Mario jumps repeatedly while celebration running
   if (surveyDone && endCelebrationRunning) {
     endJumpTimer++;
     if (endJumpTimer % 28 === 0 && mario.onGround) {
@@ -503,14 +495,13 @@ layoutAnswerBlocks();
     mario.x = clamp(mario.x, 10, W - mario.w - 10);
   }
 
+  // update coin pops and shakes
   for (let i = coinPops.length - 1; i >= 0; i--) {
     const c = coinPops[i]; c.y += c.vy; c.vy += 0.12; c.life++; c.alpha = Math.max(0, 1 - c.life / 38);
     if (c.life > 42) coinPops.splice(i, 1);
   }
   for (const b of answerBlocks) if (b.shake > 0) b.shake--;
-
   for(const c of clouds){ c.x += c.speed; c.t += 0.01; if(c.x-80>W){ c.x=-80; c.y=30+Math.random()*120; } }
-
   for (let i = fireworks.length - 1; i >= 0; i--) {
     const fw = fireworks[i];
     fw.age++;
@@ -524,75 +515,28 @@ layoutAnswerBlocks();
     if (bl.y < -80) balloons.splice(i, 1);
   }
 
-  // draw
+  // ---------- DRAWING ----------
   ctx.clearRect(0, 0, W, H);
-
   ctx.fillStyle = '#dff6ff'; ctx.fillRect(0, 0, W, H * 0.45);
 
   for(const c of clouds) drawCloud(c.x, c.y + Math.sin(c.t)*2, c.s);
-
   drawCloud(90, 64, 0.9); drawCloud(260, 48, 0.6); drawCloud(720, 84, 0.8);
-
   ctx.fillStyle = '#3fa34a'; ctx.fillRect(0, H - 28, W, 28);
 
-  // --- Draw improved tree with canopy and natural branch ---
-  // Trunk (rounded)
-  ctx.save();
-  ctx.fillStyle = "#a97735";
-  ctx.beginPath();
-  ctx.moveTo(tree.x + tree.w/2, H - 28);
-  ctx.lineTo(tree.x, H - 28 - tree.h + 12);
-  ctx.quadraticCurveTo(tree.x + tree.w/2, H - 28 - tree.h, tree.x + tree.w, H - 28 - tree.h + 12);
-  ctx.lineTo(tree.x + tree.w, H - 28);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-
-  // Canopy (big green top with round blobs)
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(tree.x + tree.w/2, H - 28 - tree.h + 25, 36, Math.PI*0.88, Math.PI*2.13, false);
-  ctx.arc(tree.x + tree.w/2 + 32, H - 28 - tree.h + 46, 26, Math.PI*1.12, Math.PI*2.1, false);
-  ctx.arc(tree.x + tree.w/2 - 30, H - 28 - tree.h + 46, 22, Math.PI*2.15, Math.PI*0.9, false);
-  ctx.closePath();
-  ctx.fillStyle = "#47b447";
-  ctx.shadowColor = "#2c7b2c";
-  ctx.shadowBlur = 16;
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.restore();
-
-  // Branch (smooth, thick, brown with shadow)
-  ctx.save();
-  ctx.strokeStyle = "#b18753";
-  ctx.lineWidth = branchRect.h;
-  ctx.beginPath();
-  ctx.moveTo(branchRect.x, branchRect.y + branchRect.h/2 + 2);
-  ctx.bezierCurveTo(
-    branchRect.x + branchRect.w/3, branchRect.y + branchRect.h/2 - 6,
-    branchRect.x + branchRect.w*2/3, branchRect.y + branchRect.h/2 + 8,
-    branchRect.x + branchRect.w, branchRect.y + branchRect.h/2 - 2
-  );
-  ctx.stroke();
-  ctx.restore();
-  // Optional: leaves on branch
-  ctx.beginPath();
-  ctx.arc(branchRect.x + branchRect.w - 14, branchRect.y + 4, 12, 0, Math.PI*2);
-  ctx.fillStyle = "#63de63";
-  ctx.fill();
-
-  // --- Draw only right-side pipes! ---
+  // Draw left pipes (for scenery)
   for (const p of pipes) {
     const px = p.x, py = p.y;
-    ctx.fillStyle = "#2ecc71";
-    ctx.fillRect(px, py - p.h, p.r*2, p.h);
-    ctx.fillStyle = "#27ae60";
-    ctx.fillRect(px - 4, py - p.h - 14, p.r*2 + 8, 14);
+    ctx.fillStyle = "#2ecc71"; ctx.fillRect(px, py - p.h, p.r*2, p.h);
+    ctx.fillStyle = "#27ae60"; ctx.fillRect(px - 4, py - p.h - 14, p.r*2 + 8, 14);
     ctx.strokeStyle = "#145a32"; ctx.lineWidth = 2;
     ctx.strokeRect(px, py - p.h, p.r*2, p.h);
     ctx.strokeRect(px - 4, py - p.h - 14, p.r*2 + 8, 14);
   }
 
+  // Draw wooden box (resting platform)
+  drawBox(box.x, box.y, box.w, box.h);
+
+  // draw suspended answer blocks
   for (const b of answerBlocks) {
     const shakeOffset = b.shake > 0 ? Math.sin(b.shake * 0.8) * 4 : 0;
     const drawY = b.y + shakeOffset;
@@ -608,6 +552,7 @@ layoutAnswerBlocks();
     ctx.textAlign = 'start';
   }
 
+  // draw coin pops
   for (const c of coinPops) {
     ctx.save(); ctx.globalAlpha = c.alpha;
     ctx.fillStyle = '#ffd24d'; ctx.beginPath(); ctx.ellipse(c.x, c.y, 7.5, 7.5, 0, 0, Math.PI * 2); ctx.fill();
@@ -615,6 +560,7 @@ layoutAnswerBlocks();
     ctx.restore();
   }
 
+  // draw goombas
   for (const g of goombas) {
     const bob = Math.sin(g.bob) * 2;
     const gx = g.x, gy = g.y + bob;
@@ -636,9 +582,7 @@ layoutAnswerBlocks();
 
   updateStars();
   drawStars();
-
   drawPlayer(mario.x, mario.y, mario.w, mario.h);
-
   if (!surveyDone) drawQuestionPanel();
 
   for (const fw of fireworks) {
@@ -655,7 +599,6 @@ layoutAnswerBlocks();
     ctx.strokeStyle = '#a7c9d8'; ctx.stroke();
     ctx.restore();
   }
-
   requestAnimationFrame(mainLoop);
 })();
 
@@ -680,6 +623,22 @@ function roundRect(ctx, x, y, w, h, r, fill, stroke) {
   if (fill) ctx.fill();
   if (stroke) ctx.stroke();
 }
+function drawBox(x, y, w, h) {
+  // Wooden color base
+  ctx.fillStyle = "#d3a15d";
+  ctx.fillRect(x, y, w, h);
+  // Wood lines
+  ctx.strokeStyle = "#a97439"; ctx.lineWidth = 2;
+  ctx.strokeRect(x, y, w, h);
+  ctx.beginPath();
+  ctx.moveTo(x + 8, y + 4); ctx.lineTo(x + w - 8, y + h - 4);
+  ctx.moveTo(x + w - 8, y + 4); ctx.lineTo(x + 8, y + h - 4);
+  ctx.moveTo(x + w/2, y); ctx.lineTo(x + w/2, y + h);
+  ctx.moveTo(x, y + h/2); ctx.lineTo(x + w, y + h/2);
+  ctx.stroke();
+}
+
+// --- Stars helpers (ouch effect) ---
 function updateStars(){
   mario.stars.forEach(s=>{ s.x+=s.dx; s.y+=s.dy; s.dy+=0.1; s.life--; s.angle+=0.22; });
   mario.stars = mario.stars.filter(s=>s.life>0);
@@ -700,6 +659,8 @@ function drawStars(){
     ctx.restore();
   });
 }
+
+// mario drawing (v9 style): small smile throughout, bigger laugh at end; eyes track upward while jumping
 function drawPlayer(x, y, w, h) {
   ctx.save();
   ctx.fillStyle = '#e84c3d';
@@ -767,9 +728,7 @@ function drawQuestionPanel() {
   const text = q ? q.text : "No question";
   wrapText(ctx, text, px + 18, py + 34, panelW - 36, 22);
   ctx.fillStyle = '#4a6b82'; ctx.font = '13px Arial';
-  const hint = q && q.type === 'scale'
-    ? "Jump up and strike a numbered box from below (or click a box)."
-    : "Move to the center to type your response when prompted.";
+  const hint = q && q.type === 'scale' ? "Jump up and strike a numbered box from below (or click a box)." : "Move to the center to type your response when prompted.";
   ctx.fillText(hint, px + 18, py + panelH - 12);
 }
 function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
