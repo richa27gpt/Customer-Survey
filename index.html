@@ -37,11 +37,7 @@
   </div> -->
 
   <canvas id="gameCanvas" width="960" height="480" aria-label="Survey game canvas"></canvas>
-  <!-- Mute/Unmute -->
-  <button id="soundToggle" title="Toggle sound">🔊</button>
-  <!-- Back Button -->
-  <button id="backBtn" title="Undo last answer" style="display:none">⏪ Back</button>
-
+  
   <!-- Open-ended modal (DOM for text responses) -->
   <div id="openPrompt" class="hidden" role="dialog" aria-modal="true">
     <div id="promptTitle" class="prompt-title"></div>
@@ -50,6 +46,20 @@
       <button id="promptSubmit">Submit</button>
     </div>
   </div>
+  
+  <!-- Mute/Unmute -->
+  <button id="soundToggle" title="Toggle sound">🔊</button>
+  <!-- Back Button -->
+  <button id="backBtn" title="Undo last answer" style="display:none">⏪ Back</button>
+
+  <!-- Open-ended modal (DOM for text responses) -->
+  <!-- <div id="openPrompt" class="hidden" role="dialog" aria-modal="true">
+    <div id="promptTitle" class="prompt-title"></div>
+    <input id="promptInput" type="text" placeholder="Type your answer..." />
+    <div class="prompt-actions">
+      <button id="promptSubmit">Submit</button>
+    </div>
+  </div> -->
 
   <!-- End screen: minimal, no export, no replay -->
   <div id="endScreen" class="hidden" role="dialog" aria-live="polite">
