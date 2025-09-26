@@ -77,7 +77,7 @@ const winSound = new Audio('sounds/win.mp3');
 jumpSound.volume = 0.5;
 coinSound.volume = 0.5;
 hitSound.volume  = 0.5;
-winSound.volume = 0.6;
+winSound.volume = 0.5;
 
 // --- Sound toggle ---
 let soundEnabled = true;
