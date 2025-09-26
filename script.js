@@ -156,6 +156,9 @@ let endCelebrationRunning = false;
 let endJumpTimer = 0;
 let endSpawnInterval = null;
 
+// listeners for open-ended prompt so Back can cleanly cancel it
+let promptListeners = { click: null, key: null };
+
 // ---------- Input ----------
 // const keys = {};
 // window.addEventListener('keydown', (e) => { keys[e.key] = true; });
@@ -250,6 +253,14 @@ function selectScale(val) {
 // Back Button
 function goBackOneQuestion() {
   if (lastScaleQuestion >= 0 && currentQ > 0) {
+    // If a text prompt is open, close it and remove its listeners
+    if (showingPrompt) {
+      openPrompt.classList.add('hidden');
+      showingPrompt = false;
+      if (promptListeners.click) { promptSubmit.removeEventListener('click', promptListeners.click); promptListeners.click = null; }
+      if (promptListeners.key)   { window.removeEventListener('keypress', promptListeners.key);     promptListeners.key   = null; }
+    }
+
     // remove last answer
     answers.pop();
     currentQ = lastScaleQuestion;  // step back
@@ -286,16 +297,34 @@ function showTextPrompt(qText, callback) {
   promptTitle.textContent = qText;
   promptInput.value = "";
   promptInput.focus();
+
   const handler = () => {
     const v = promptInput.value.trim();
     if (!v) return;
     openPrompt.classList.add('hidden');
     showingPrompt = false;
-    promptSubmit.removeEventListener('click', handler);
-    window.removeEventListener('keypress', onEnter);
+    // remove listeners on normal submit
+    if (promptListeners.click) { promptSubmit.removeEventListener('click', promptListeners.click); promptListeners.click = null; }
+    if (promptListeners.key)   { window.removeEventListener('keypress', promptListeners.key);     promptListeners.key   = null; }
     callback(v);
   };
   function onEnter(e) { if (e.key === 'Enter') handler(); }
+
+  promptSubmit.addEventListener('click', handler);
+  window.addEventListener('keypress', onEnter);
+
+  // store refs so Back can remove them if needed
+  promptListeners.click = handler;
+  promptListeners.key   = onEnter;
+
+  // Back button should show if previous was a scale (box) question
+  const backBtn = document.getElementById('backBtn');
+  if (lastScaleQuestion === currentQ - 1 && !surveyDone) {
+    backBtn.style.display = "inline-block";
+  } else {
+    backBtn.style.display = "none";
+  }
+
   promptSubmit.addEventListener('click', handler);
   window.addEventListener('keypress', onEnter);
   
