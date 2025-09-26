@@ -120,21 +120,23 @@ canvas#gameCanvas{
 /* =========================
    Text Prompt (modal)
    ========================= */
-#openPrompt{
-  position:absolute;
-  top:140px;                         /* sits below the in-canvas question panel */
-  left:50%;
-  transform:translateX(-50%);
-  background:rgba(255,255,255,0.92); /* translucent panel */
-  border-radius:14px;
-  padding:24px 30px;
-  width:500px;
-  max-width:90%;
-  box-shadow:0 8px 24px rgba(0,0,0,0.25);
-  text-align:left;
-  z-index:1000;
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);        /* frosted glass */
+#openPrompt {
+  position: absolute;
+  top: 140px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.6); /* lighter opacity for stronger glass effect */
+  border-radius: 14px;
+  padding: 24px 30px;
+  width: 500px;
+  max-width: 90%;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  text-align: left;
+  z-index: 1000;
+
+  /* 🔑 Frosted glass effect */
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
 }
 #openPrompt.hidden{ display:none; }
 
