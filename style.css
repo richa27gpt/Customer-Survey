@@ -155,13 +155,28 @@ canvas#gameCanvas{
   text-align: left;
   z-index: 999; 
 } */
+#openPrompt {
+  position: absolute;
+  top: 140px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.92); /* translucent panel */
+  border-radius: 14px;
+  padding: 20px 28px;
+  width: 500px;
+  max-width: 90%;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  text-align: left;
+  z-index: 999;
+  backdrop-filter: blur(6px); /* frosted-glass effect */
+}
 
-#openPrompt{top:88px}
+/* #openPrompt{top:88px} */
 #openPrompt.hidden,#endScreen.hidden{display:none}
 .prompt-title{font-weight:700;color:var(--accent);margin-bottom:10px}
 /* #promptInput{width:100%;padding:10px 12px;border-radius:8px;border:1px solid #d7f1ff;font-size:15px} */
 
-#promptInput {
+/* #promptInput {
   width: 100%;
   padding: 12px 14px;
   margin-top: 12px;
@@ -176,7 +191,7 @@ canvas#gameCanvas{
 #promptInput:focus {
   border-color: #1e88e5;
   box-shadow: 0 0 6px rgba(30, 136, 229, 0.4);
-}
+} */
 
 #promptSubmit {
   margin-top: 16px;
@@ -214,6 +229,6 @@ canvas#gameCanvas{
 }
 
 /* Admin page tweaks (when opened) */
-.admin-wrap{max-width:980px;margin:18px auto;padding:18px;background:#fff;border-radius:10px;border:1px solid #e3f2fd}
+/* .admin-wrap{max-width:980px;margin:18px auto;padding:18px;background:#fff;border-radius:10px;border:1px solid #e3f2fd}
 .admin-actions{display:flex;gap:8px;align-items:center}
-.admin-stats{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+.admin-stats{display:flex;flex-direction:column;gap:12px;margin-top:12px} */
