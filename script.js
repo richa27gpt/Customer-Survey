@@ -512,11 +512,17 @@ layoutAnswerBlocks();
     if (q && q.type === 'text') {
       const centerLeft = W * 0.32, centerRight = W * 0.68;
       if (mario.onGround && (mario.x + mario.w / 2) >= centerLeft && (mario.x + mario.w / 2) <= centerRight && !showingPrompt) {
-        setTimeout(() => {
-          if (!showingPrompt && !surveyDone && questions[currentQ] && questions[currentQ].type === 'text') {
-            showTextPrompt(questions[currentQ].text, (resp) => { answers.push(resp); advanceQuestion(); });
-          }
-        }, 220);
+        // setTimeout(() => {
+        //   if (!showingPrompt && !surveyDone && questions[currentQ] && questions[currentQ].type === 'text') {
+        //     showTextPrompt(questions[currentQ].text, (resp) => { answers.push(resp); advanceQuestion(); });
+        //   }
+        // }, 220);
+        if (!showingPrompt && !surveyDone && questions[currentQ] && questions[currentQ].type === 'text') {
+          showTextPrompt(questions[currentQ].text, (resp) => { 
+            answers.push(resp); 
+            advanceQuestion(); 
+          });
+        }
       }
     }
   }
