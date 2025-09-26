@@ -6,7 +6,7 @@ Used Tools:
 > Github Pages - to create Repo Link
 > Deploy App:
    - Google Sites
-   - 
+   - netlify : connect with github
    - Python + Streamlit
    - Python + Flask
 
