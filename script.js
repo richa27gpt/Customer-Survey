@@ -36,16 +36,6 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const W = canvas.width, H = canvas.height;
 
-// Instructions overlay
-const overlay = document.getElementById("overlay");
-const startBtn = document.getElementById("startBtn");
-
-startBtn.addEventListener("click", () => {
-  overlay.style.display = "none";
-  canvas.focus();  // immediately give control to game
-  gameStarted = true;   // ✅ start game only now
-});
-
 const openPrompt = document.getElementById('openPrompt');
 const promptTitle = document.getElementById('promptTitle');
 const promptInput = document.getElementById('promptInput');
@@ -77,7 +67,7 @@ const winSound = new Audio('sounds/win.mp3');
 jumpSound.volume = 0.5;
 coinSound.volume = 0.5;
 hitSound.volume  = 0.5;
-winSound.volume = 0.5;
+winSound.volume = 0.6;
 
 // --- Sound toggle ---
 let soundEnabled = true;
@@ -139,9 +129,6 @@ let coinPops = [];
 let fireworks = [];
 let balloons = [];
 
-// Fix Goombas until game is begun
-let gameStarted = false;
-
 let currentQ = 0;
 let answers = [];
 let surveyDone = false;
@@ -156,35 +143,13 @@ let endCelebrationRunning = false;
 let endJumpTimer = 0;
 let endSpawnInterval = null;
 
+// store active prompt listeners so we can remove them if user clicks Back
+let promptListeners = { click: null, key: null };
+
 // ---------- Input ----------
-// const keys = {};
-// window.addEventListener('keydown', (e) => { keys[e.key] = true; });
-// window.addEventListener('keyup', (e) => { keys[e.key] = false; });
-
-// ---------- Input (fixed) ----------
-const keys = Object.create(null);
-const BLOCKED = new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ']);
-
-function isTypingTarget(el) {
-  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
-}
-
-window.addEventListener('keydown', (e) => {
-  if (BLOCKED.has(e.key) && !isTypingTarget(e.target)) e.preventDefault(); // stop page scroll only when not typing
-  if (!isTypingTarget(e.target)) keys[e.key] = true;
-});
-
-window.addEventListener('keyup', (e) => {
-  if (BLOCKED.has(e.key) && !isTypingTarget(e.target)) e.preventDefault();
-  keys[e.key] = false;
-});
-
-// clear any “stuck key” if focus is lost (alt-tab, click outside, overlay, etc.)
-window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
-
-// make the canvas focusable and refocus on click (doesn’t interfere with your existing mousedown handler)
-canvas.setAttribute('tabindex', '0');
-canvas.addEventListener('mousedown', () => canvas.focus());
+const keys = {};
+window.addEventListener('keydown', (e) => { keys[e.key] = true; });
+window.addEventListener('keyup', (e) => { keys[e.key] = false; });
 
 // Mouse click selection for blocks
 canvas.addEventListener('mousedown', (e) => {
@@ -250,6 +215,15 @@ function selectScale(val) {
 // Back Button
 function goBackOneQuestion() {
   if (lastScaleQuestion >= 0 && currentQ > 0) {
+
+    // If a text prompt is open, close it and remove its listeners
+    if (showingPrompt) {
+      openPrompt.classList.add('hidden');
+      showingPrompt = false;
+      if (promptListeners.click) { promptSubmit.removeEventListener('click', promptListeners.click); promptListeners.click = null; }
+      if (promptListeners.key)   { window.removeEventListener('keypress', promptListeners.key);     promptListeners.key   = null; }
+    }
+
     // remove last answer
     answers.pop();
     currentQ = lastScaleQuestion;  // step back
@@ -281,26 +255,43 @@ function showTextPrompt(qText, callback) {
   showingPrompt = true;
   openPrompt.classList.remove('hidden');
   // place the prompt box below the question panel
-  openPrompt.style.top = (document.querySelector("canvas").offsetTop + 140) + "px";
+  try {
+    openPrompt.style.top = (document.querySelector("canvas").offsetTop + 140) + "px";
+  } catch(e) { /* ignore */ }
 
   promptTitle.textContent = qText;
   promptInput.value = "";
   promptInput.focus();
+
+  // show Back button if the previous question was a scale (box) one
+  const backBtnEl = document.getElementById('backBtn');
+  if (lastScaleQuestion === currentQ - 1 && !surveyDone) {
+    backBtnEl.style.display = "inline-block";
+  } else {
+    backBtnEl.style.display = "none";
+  }
+
   const handler = () => {
     const v = promptInput.value.trim();
     if (!v) return;
     openPrompt.classList.add('hidden');
     showingPrompt = false;
-    promptSubmit.removeEventListener('click', handler);
-    window.removeEventListener('keypress', onEnter);
+    // remove listeners on normal submit
+    if (promptListeners.click) { promptSubmit.removeEventListener('click', promptListeners.click); promptListeners.click = null; }
+    if (promptListeners.key)   { window.removeEventListener('keypress', promptListeners.key);     promptListeners.key   = null; }
     callback(v);
   };
   function onEnter(e) { if (e.key === 'Enter') handler(); }
+
+  // attach and store listeners so Back can remove them
+  promptListeners.click = handler;
+  promptListeners.key = onEnter;
+
   promptSubmit.addEventListener('click', handler);
   window.addEventListener('keypress', onEnter);
-  
-  document.getElementById('backBtn').style.display = "none"; //Show/Hide logic for Back Button
+
 }
+
 
 // ---------- Server submission (anonymous) with local fallback ----------
 async function submitAnonymizedResults(payload) {
@@ -356,10 +347,8 @@ function finishSurvey() {
   mario.onGround = true;
 
   // Play victory sound
-  if (soundEnabled) {
-    winSound.currentTime = 0;
-    winSound.play();
-  }
+  winSound.currentTime = 0;
+  winSound.play();
 
   // 👉 Disable sound toggle when survey ends
   const soundBtn = document.getElementById('soundToggle');
@@ -483,17 +472,15 @@ layoutAnswerBlocks();
 
     // goombas motion & collision
     for (let g of goombas) {
-      if (gameStarted) {
-        g.x += g.dir * g.spd;
-        if (g.x <= 12 || g.x + g.w >= W - 12) g.dir *= -1;
-        g.bob += 0.04;
-      }
-        if (rectsCollide(mario, g) && !mario.shocked) {
-          mario.shocked = true;
-          // Play Sound
-          if (soundEnabled) {
-            hitSound.currentTime = 0;
-            hitSound.play();
+      g.x += g.dir * g.spd;
+      if (g.x <= 12 || g.x + g.w >= W - 12) g.dir *= -1;
+      g.bob += 0.04;
+      if (rectsCollide(mario, g) && !mario.shocked) {
+        mario.shocked = true;
+        // Play Sound
+        if (soundEnabled) {
+          hitSound.currentTime = 0;
+          hitSound.play();
         }
         //
         // recoil
@@ -512,17 +499,11 @@ layoutAnswerBlocks();
     if (q && q.type === 'text') {
       const centerLeft = W * 0.32, centerRight = W * 0.68;
       if (mario.onGround && (mario.x + mario.w / 2) >= centerLeft && (mario.x + mario.w / 2) <= centerRight && !showingPrompt) {
-        // setTimeout(() => {
-        //   if (!showingPrompt && !surveyDone && questions[currentQ] && questions[currentQ].type === 'text') {
-        //     showTextPrompt(questions[currentQ].text, (resp) => { answers.push(resp); advanceQuestion(); });
-        //   }
-        // }, 220);
-        if (!showingPrompt && !surveyDone && questions[currentQ] && questions[currentQ].type === 'text') {
-          showTextPrompt(questions[currentQ].text, (resp) => { 
-            answers.push(resp); 
-            advanceQuestion(); 
-          });
-        }
+        setTimeout(() => {
+          if (!showingPrompt && !surveyDone && questions[currentQ] && questions[currentQ].type === 'text') {
+            showTextPrompt(questions[currentQ].text, (resp) => { answers.push(resp); advanceQuestion(); });
+          }
+        }, 220);
       }
     }
   }
