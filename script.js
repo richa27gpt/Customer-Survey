@@ -43,6 +43,7 @@ const startBtn = document.getElementById("startBtn");
 startBtn.addEventListener("click", () => {
   overlay.style.display = "none";
   canvas.focus();  // immediately give control to game
+  gameStarted = true;   // ✅ start game only now
 });
 
 const openPrompt = document.getElementById('openPrompt');
@@ -137,6 +138,9 @@ const blockW = 48, blockH = 34, blockGap = 18, blockAbove = 108;
 let coinPops = [];
 let fireworks = [];
 let balloons = [];
+
+// Fix Goombas until game is begun
+let gameStarted = false;
 
 let currentQ = 0;
 let answers = [];
@@ -474,15 +478,17 @@ layoutAnswerBlocks();
 
     // goombas motion & collision
     for (let g of goombas) {
-      g.x += g.dir * g.spd;
-      if (g.x <= 12 || g.x + g.w >= W - 12) g.dir *= -1;
-      g.bob += 0.04;
-      if (rectsCollide(mario, g) && !mario.shocked) {
-        mario.shocked = true;
-        // Play Sound
-        if (soundEnabled) {
-          hitSound.currentTime = 0;
-          hitSound.play();
+      if (gameStarted) {
+        g.x += g.dir * g.spd;
+        if (g.x <= 12 || g.x + g.w >= W - 12) g.dir *= -1;
+        g.bob += 0.04;
+      }
+        if (rectsCollide(mario, g) && !mario.shocked) {
+          mario.shocked = true;
+          // Play Sound
+          if (soundEnabled) {
+            hitSound.currentTime = 0;
+            hitSound.play();
         }
         //
         // recoil
