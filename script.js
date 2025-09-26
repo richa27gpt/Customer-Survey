@@ -1,7 +1,7 @@
-// script.js - updates: random goomba movement; pipes only on right and always 3 with random heights; improved tree/branch design and Mario can reach branch
+// script.js - updates: Mario can rest on a tree branch (left side) to avoid Goombas; instructions updated; pipes removed from both sides
 
 // ---------- Configuration ----------
-const SINGLE_SUBMIT = false;
+const SINGLE_SUBMIT = false; // set to true to re-enable "only once per browser" (uses localStorage)
 const LOCAL_KEY = 'survey_completed_v1';
 const LOCAL_RESPONSES_KEY = 'survey_responses';
 
@@ -40,10 +40,20 @@ const W = canvas.width, H = canvas.height;
 const overlay = document.getElementById("overlay");
 const startBtn = document.getElementById("startBtn");
 
+// --- INSTRUCTIONS UPDATE: Add tip about tree! ---
+if (overlay) {
+  const tip = document.createElement("div");
+  tip.style.marginTop = "16px";
+  tip.style.fontSize = "1rem";
+  tip.style.color = "#226622";
+  tip.innerHTML = "Tip: If you want to think without Goombas hitting Mario, move Mario onto the tree branch (left side) and rest there! Goombas can't reach Mario while he is on the branch.";
+  overlay.appendChild(tip);
+}
+
 startBtn.addEventListener("click", () => {
   overlay.style.display = "none";
-  canvas.focus();
-  gameStarted = true;
+  canvas.focus();  // immediately give control to game
+  gameStarted = true;   // ✅ start game only now
 });
 
 const openPrompt = document.getElementById('openPrompt');
@@ -53,7 +63,7 @@ const promptSubmit = document.getElementById('promptSubmit');
 const endScreen = document.getElementById('endScreen');
 
 // ---------- Game entities ----------
-const gravity = 0.36;
+const gravity = 0.38;
 const mario = {
   x: 80, y: H - 28 - 36, w: 34, h: 36, vy: 0, onGround: true, speed: 2.4, color: '#e84c3d',
   bob: 0,
@@ -66,17 +76,18 @@ const goombas = [
   { x: 670, y: H - 28 - 20, w: 22, h: 20, dir: -1, spd: 0.96, bob: 0, lastChange: 0 }
 ];
 
-// --- Tree resting platform (better design and reachable branch) ---
+// --- Tree resting platform (branch) ---
+// Platform is a horizontal branch at fixed position (left side)
 const tree = {
-  x: 54, // More centered
+  x: 26, // tree trunk x
   w: 28, // trunk width
-  h: 108, // trunk height (taller for better visuals)
-  branchY: H - 28 - 46, // LOWER the branch (was 78, now 46)
-  branchW: 90, // longer branch
-  branchH: 14  // thicker branch
+  h: 80, // trunk height
+  branchY: H - 28 - 78, // height from ground
+  branchW: 76,
+  branchH: 14
 };
 const branchRect = {
-  x: tree.x + tree.w - 7, // branch starts farther right of trunk for realism
+  x: tree.x + tree.w - 2, // branch starts just right of trunk
   y: tree.branchY,
   w: tree.branchW,
   h: tree.branchH
@@ -88,6 +99,7 @@ const coinSound = new Audio('sounds/coin.mp3');
 const hitSound  = new Audio('sounds/hit.mp3');
 const winSound = new Audio('sounds/win.mp3');
 
+// Default volume
 jumpSound.volume = 0.5;
 coinSound.volume = 0.5;
 hitSound.volume  = 0.5;
@@ -111,35 +123,29 @@ function initClouds(){
 }
 initClouds();
 
-// --- Pipes: always 3, only on right, random heights ---
+// --- Pipes removed! Only tree/branch now ---
 let pipes = [];
-function initPipes() {
-  pipes = [];
-  for (let i = 0; i < 3; i++) { // always 3 pipes
-    pipes.push({
-      x: W - 80 - i * 60,
-      y: H - 28,
-      h: 40 + Math.random() * 38,
-      r: 22,
-      side: "right"
-    });
-  }
-}
-initPipes();
 
+// --- Answer blocks, coins, fireworks, balloons ---
 let answerBlocks = [];
 const blockW = 48, blockH = 34, blockGap = 18, blockAbove = 108;
 let coinPops = [];
 let fireworks = [];
 let balloons = [];
 
+// Fix Goombas until game is begun
 let gameStarted = false;
+
 let currentQ = 0;
 let answers = [];
 let surveyDone = false;
 let showingPrompt = false;
 let lastSelectionTime = 0;
+
+// Back Button
 let lastScaleQuestion = -1;
+
+// end-screen celebration running flag & timers
 let endCelebrationRunning = false;
 let endJumpTimer = 0;
 let endSpawnInterval = null;
@@ -182,7 +188,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const now = () => new Date().getTime();
 function rectsCollide(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
 
-// ---------- Layout answer blocks ----------
+// ---------- Layout answer blocks (reversed numbering, adds smileys) ----------
 function layoutAnswerBlocks() {
   const q = questions[currentQ];
   if (!q || q.type !== 'scale') { answerBlocks = []; return; }
@@ -392,20 +398,22 @@ layoutAnswerBlocks();
     if (keys['ArrowLeft'] || keys['a']) mario.x -= mario.speed;
     if (keys['ArrowRight'] || keys['d']) mario.x += mario.speed;
     if ((keys['ArrowUp'] || keys['w']) && mario.onGround) {
-      mario.vy = -9.2; // STRONGER jump for branch!
+      mario.vy = -7.6; 
       mario.onGround = false;
       if (soundEnabled) {
         jumpSound.currentTime = 0;
         jumpSound.play();
       }
     }
+    // Clamp Mario to screen bounds
     mario.x = clamp(mario.x, 6, W - mario.w - 6);
 
     // Tree branch platform collision
     let onBranch = false;
+    // Check if Mario is landing (downwards) and feet are just above branch
     if (
       mario.vy >= 0 &&
-      mario.x + mario.w > branchRect.x + 2 &&
+      mario.x + mario.w > branchRect.x + 2 && // allow some leeway
       mario.x < branchRect.x + branchRect.w - 2 &&
       prevY + mario.h <= branchRect.y + 4 &&
       mario.y + mario.h >= branchRect.y + 2 &&
@@ -425,6 +433,7 @@ layoutAnswerBlocks();
         mario.y = H - 28 - mario.h; mario.vy = 0; mario.onGround = true;
       } else mario.onGround = false;
     } else {
+      // Mario stays on branch until moves/jumps off
       mario.vy = 0;
       mario.onGround = true;
     }
@@ -461,7 +470,7 @@ layoutAnswerBlocks();
       }
     }
 
-    // Head-strike detection
+    // Head-strike detection (unchanged)
     if (mario.vy < 0) {
       for (let i = 0; i < answerBlocks.length; i++) {
         const b = answerBlocks[i];
@@ -484,15 +493,16 @@ layoutAnswerBlocks();
       const centerLeft = W * 0.32, centerRight = W * 0.68;
       if (mario.onGround && (mario.x + mario.w / 2) >= centerLeft && (mario.x + mario.w / 2) <= centerRight && !showingPrompt) {
         if (!showingPrompt && !surveyDone && questions[currentQ] && questions[currentQ].type === 'text') {
-          showTextPrompt(questions[currentQ].text, (resp) => {
-            answers.push(resp);
-            advanceQuestion();
+          showTextPrompt(questions[currentQ].text, (resp) => { 
+            answers.push(resp); 
+            advanceQuestion(); 
           });
         }
       }
     }
   }
 
+  // End-screen behavior: excited Mario jumps repeatedly while celebration running
   if (surveyDone && endCelebrationRunning) {
     endJumpTimer++;
     if (endJumpTimer % 28 === 0 && mario.onGround) {
@@ -503,14 +513,17 @@ layoutAnswerBlocks();
     mario.x = clamp(mario.x, 10, W - mario.w - 10);
   }
 
+  // update coin pops and shakes
   for (let i = coinPops.length - 1; i >= 0; i--) {
     const c = coinPops[i]; c.y += c.vy; c.vy += 0.12; c.life++; c.alpha = Math.max(0, 1 - c.life / 38);
     if (c.life > 42) coinPops.splice(i, 1);
   }
   for (const b of answerBlocks) if (b.shake > 0) b.shake--;
 
+  // update clouds (slow drift)
   for(const c of clouds){ c.x += c.speed; c.t += 0.01; if(c.x-80>W){ c.x=-80; c.y=30+Math.random()*120; } }
 
+  // update fireworks & balloons
   for (let i = fireworks.length - 1; i >= 0; i--) {
     const fw = fireworks[i];
     fw.age++;
@@ -527,72 +540,37 @@ layoutAnswerBlocks();
   // draw
   ctx.clearRect(0, 0, W, H);
 
+  // sky background
   ctx.fillStyle = '#dff6ff'; ctx.fillRect(0, 0, W, H * 0.45);
 
+  // dynamic clouds
   for(const c of clouds) drawCloud(c.x, c.y + Math.sin(c.t)*2, c.s);
 
+  // decorative clouds
   drawCloud(90, 64, 0.9); drawCloud(260, 48, 0.6); drawCloud(720, 84, 0.8);
 
+  // ground
   ctx.fillStyle = '#3fa34a'; ctx.fillRect(0, H - 28, W, 28);
 
-  // --- Draw improved tree with canopy and natural branch ---
-  // Trunk (rounded)
-  ctx.save();
-  ctx.fillStyle = "#a97735";
+  // --- Draw tree and branch ---
+  // Tree trunk
+  ctx.fillStyle = "#9d6b1a";
+  ctx.fillRect(tree.x, H - 28 - tree.h, tree.w, tree.h);
+  // Tree foliage
   ctx.beginPath();
-  ctx.moveTo(tree.x + tree.w/2, H - 28);
-  ctx.lineTo(tree.x, H - 28 - tree.h + 12);
-  ctx.quadraticCurveTo(tree.x + tree.w/2, H - 28 - tree.h, tree.x + tree.w, H - 28 - tree.h + 12);
-  ctx.lineTo(tree.x + tree.w, H - 28);
-  ctx.closePath();
+  ctx.arc(tree.x + tree.w/2, H - 28 - tree.h + 14, 30, Math.PI, Math.PI*2);
+  ctx.fillStyle = "#3cb34a";
   ctx.fill();
-  ctx.restore();
-
-  // Canopy (big green top with round blobs)
-  ctx.save();
+  // Branch
+  ctx.fillStyle = "#d9b480";
+  ctx.fillRect(branchRect.x, branchRect.y, branchRect.w, branchRect.h);
+  // Branch leaves
   ctx.beginPath();
-  ctx.arc(tree.x + tree.w/2, H - 28 - tree.h + 25, 36, Math.PI*0.88, Math.PI*2.13, false);
-  ctx.arc(tree.x + tree.w/2 + 32, H - 28 - tree.h + 46, 26, Math.PI*1.12, Math.PI*2.1, false);
-  ctx.arc(tree.x + tree.w/2 - 30, H - 28 - tree.h + 46, 22, Math.PI*2.15, Math.PI*0.9, false);
-  ctx.closePath();
-  ctx.fillStyle = "#47b447";
-  ctx.shadowColor = "#2c7b2c";
-  ctx.shadowBlur = 16;
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.restore();
-
-  // Branch (smooth, thick, brown with shadow)
-  ctx.save();
-  ctx.strokeStyle = "#b18753";
-  ctx.lineWidth = branchRect.h;
-  ctx.beginPath();
-  ctx.moveTo(branchRect.x, branchRect.y + branchRect.h/2 + 2);
-  ctx.bezierCurveTo(
-    branchRect.x + branchRect.w/3, branchRect.y + branchRect.h/2 - 6,
-    branchRect.x + branchRect.w*2/3, branchRect.y + branchRect.h/2 + 8,
-    branchRect.x + branchRect.w, branchRect.y + branchRect.h/2 - 2
-  );
-  ctx.stroke();
-  ctx.restore();
-  // Optional: leaves on branch
-  ctx.beginPath();
-  ctx.arc(branchRect.x + branchRect.w - 14, branchRect.y + 4, 12, 0, Math.PI*2);
-  ctx.fillStyle = "#63de63";
+  ctx.arc(branchRect.x + branchRect.w - 10, branchRect.y + 4, 12, 0, Math.PI*2);
+  ctx.fillStyle = "#5bc46f";
   ctx.fill();
 
-  // --- Draw only right-side pipes! ---
-  for (const p of pipes) {
-    const px = p.x, py = p.y;
-    ctx.fillStyle = "#2ecc71";
-    ctx.fillRect(px, py - p.h, p.r*2, p.h);
-    ctx.fillStyle = "#27ae60";
-    ctx.fillRect(px - 4, py - p.h - 14, p.r*2 + 8, 14);
-    ctx.strokeStyle = "#145a32"; ctx.lineWidth = 2;
-    ctx.strokeRect(px, py - p.h, p.r*2, p.h);
-    ctx.strokeRect(px - 4, py - p.h - 14, p.r*2 + 8, 14);
-  }
-
+  // draw suspended answer blocks
   for (const b of answerBlocks) {
     const shakeOffset = b.shake > 0 ? Math.sin(b.shake * 0.8) * 4 : 0;
     const drawY = b.y + shakeOffset;
@@ -608,6 +586,7 @@ layoutAnswerBlocks();
     ctx.textAlign = 'start';
   }
 
+  // draw coin pops
   for (const c of coinPops) {
     ctx.save(); ctx.globalAlpha = c.alpha;
     ctx.fillStyle = '#ffd24d'; ctx.beginPath(); ctx.ellipse(c.x, c.y, 7.5, 7.5, 0, 0, Math.PI * 2); ctx.fill();
@@ -615,6 +594,7 @@ layoutAnswerBlocks();
     ctx.restore();
   }
 
+  // draw obstacles (goombas)
   for (const g of goombas) {
     const bob = Math.sin(g.bob) * 2;
     const gx = g.x, gy = g.y + bob;
@@ -634,9 +614,11 @@ layoutAnswerBlocks();
     ctx.fill();
   }
 
+  // stars (if any)
   updateStars();
   drawStars();
 
+  // mario (v9-style, shows smile when end, eyes move with jump)
   drawPlayer(mario.x, mario.y, mario.w, mario.h);
 
   if (!surveyDone) drawQuestionPanel();
@@ -680,6 +662,8 @@ function roundRect(ctx, x, y, w, h, r, fill, stroke) {
   if (fill) ctx.fill();
   if (stroke) ctx.stroke();
 }
+
+// --- Stars helpers (ouch effect) ---
 function updateStars(){
   mario.stars.forEach(s=>{ s.x+=s.dx; s.y+=s.dy; s.dy+=0.1; s.life--; s.angle+=0.22; });
   mario.stars = mario.stars.filter(s=>s.life>0);
@@ -700,6 +684,7 @@ function drawStars(){
     ctx.restore();
   });
 }
+// mario drawing (v9 style): small smile throughout, bigger laugh at end; eyes track upward while jumping
 function drawPlayer(x, y, w, h) {
   ctx.save();
   ctx.fillStyle = '#e84c3d';
@@ -780,7 +765,9 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   }
   ctx.fillText(line, x, y);
 }
+// Wiring Back Button
 document.getElementById('backBtn').addEventListener('click', goBackOneQuestion);
+// Ensure answerBlocks recalculated on question change
 const originalAdvance = advanceQuestion;
 advanceQuestion = function () {
   originalAdvance();
