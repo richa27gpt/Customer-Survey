@@ -356,8 +356,10 @@ function finishSurvey() {
   mario.onGround = true;
 
   // Play victory sound
-  winSound.currentTime = 0;
-  winSound.play();
+  if (soundEnabled) {
+    winSound.currentTime = 0;
+    winSound.play();
+  }
 
   // 👉 Disable sound toggle when survey ends
   const soundBtn = document.getElementById('soundToggle');
