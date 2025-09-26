@@ -1,4 +1,4 @@
-// script.js - v3: Angry Birds-style wooden box, more/faster clouds, box moved toward center, pipes only on right
+// script.js - v5: Angry Birds-style wooden box, more/faster clouds, box moved toward center, pipes right, trees on the left
 
 // ---------- Configuration ----------
 const SINGLE_SUBMIT = false;
@@ -43,7 +43,7 @@ const startBtn = document.getElementById("startBtn");
 // ---- INSTRUCTIONS UPDATE
 const instructionsBox = document.getElementById("instructions");
 if (instructionsBox) {
-  instructionsBox.innerHTML += "<br>- <b>Tip:</b> Mario can rest on the <span style='color: #b97a56'>wooden box</span> at the left side of the screen (looks like Angry Birds wood) to avoid Goombas while you read/think!";
+  instructionsBox.innerHTML += "<br>- <b>Tip:</b> Mario can rest on the <span style='color: #b97a56'>wooden box</span> (center-left, looks like Angry Birds wood) to avoid Goombas while you read/think!<br>- Enjoy the trees on the left!";
 }
 
 startBtn.addEventListener("click", () => {
@@ -67,7 +67,7 @@ const mario = {
   stars: []
 };
 
-// Wooden box for Mario to rest (now fancier and more central)
+// Wooden box for Mario to rest (fancy, Angry Birds style, center-left)
 const box = {
   x: 160, // moved more toward the center, tweak as needed
   y: H - 28 - 48,
@@ -79,6 +79,15 @@ const box = {
 const goombas = [
   { x: 390, y: H - 28 - 20, w: 22, h: 20, dir: 1, spd: 1.06, bob: 0, lastChange: 0 },
   { x: 670, y: H - 28 - 20, w: 22, h: 20, dir: -1, spd: 0.96, bob: 0, lastChange: 0 }
+];
+
+// --- Trees setup (cartoon, left of screen and box) ---
+const trees = [
+  { x: 38, trunkW: 16, trunkH: 42, foliageR: 36, c: "#88b04b" },
+  { x: 85, trunkW: 14, trunkH: 34, foliageR: 26, c: "#77a042" },
+  { x: 120, trunkW: 12, trunkH: 27, foliageR: 19, c: "#a5cc6b" },
+  { x: 62, trunkW: 12, trunkH: 21, foliageR: 14, c: "#b2e067" },
+  { x: 110, trunkW: 9, trunkH: 16, foliageR: 8, c: "#d7f6b5" }
 ];
 
 // --- Sounds ---
@@ -103,12 +112,12 @@ soundToggleBtn.addEventListener("click", () => {
 let clouds = [];
 function initClouds(){
   clouds = [];
-  for(let i=0;i<16;i++){ // more clouds
+  for(let i=0;i<16;i++){
     clouds.push({
       x: Math.random()*W,
       y: 20 + Math.random() * (H * 0.3),
       s: 0.5 + Math.random()*1.1,
-      speed: 0.08 + Math.random()*0.16, // faster clouds
+      speed: 0.08 + Math.random()*0.16,
       t: Math.random()*Math.PI*2
     });
   }
@@ -183,7 +192,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const now = () => new Date().getTime();
 function rectsCollide(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
 
-// ---------- Layout answer blocks (reversed numbering, adds smileys) ----------
+// ---------- Layout answer blocks ----------
 function layoutAnswerBlocks() {
   const q = questions[currentQ];
   if (!q || q.type !== 'scale') { answerBlocks = []; return; }
@@ -532,6 +541,9 @@ layoutAnswerBlocks();
   drawCloud(90, 64, 0.9); drawCloud(260, 48, 0.6); drawCloud(720, 84, 0.8);
   ctx.fillStyle = '#3fa34a'; ctx.fillRect(0, H - 28, W, 28);
 
+  // Draw trees (left side, behind box)
+  for (const tree of trees) drawTree(tree);
+
   // Draw fancier wooden box (Angry Birds style)
   drawWoodenBox(box);
 
@@ -638,7 +650,6 @@ function roundRect(ctx, x, y, w, h, r, fill, stroke) {
 // --- Fancy wooden box (Angry Birds style) ---
 function drawWoodenBox(box) {
   ctx.save();
-  // Base box
   ctx.fillStyle = "#b97a56";
   ctx.strokeStyle = "#7c4f26";
   ctx.lineWidth = 4;
@@ -646,8 +657,6 @@ function drawWoodenBox(box) {
   ctx.shadowBlur = 8;
   ctx.fillRect(box.x, box.y, box.w, box.h);
   ctx.strokeRect(box.x, box.y, box.w, box.h);
-
-  // Planks (vertical)
   ctx.lineWidth = 2;
   for (let i = 1; i < 4; i++) {
     let px = box.x + (box.w / 4) * i;
@@ -657,8 +666,6 @@ function drawWoodenBox(box) {
     ctx.strokeStyle = "#e2b07a";
     ctx.stroke();
   }
-
-  // Plank highlights (top/bottom lines)
   ctx.strokeStyle = "#e2b07a";
   ctx.beginPath();
   ctx.moveTo(box.x + 3, box.y + 8);
@@ -666,8 +673,6 @@ function drawWoodenBox(box) {
   ctx.moveTo(box.x + 3, box.y + box.h - 8);
   ctx.lineTo(box.x + box.w - 3, box.y + box.h - 8);
   ctx.stroke();
-
-  // Nails (dots)
   for (let i = 0; i < 4; i++) {
     ctx.beginPath();
     ctx.arc(box.x + (box.w / 4) * i + box.w / 8, box.y + 12, 2, 0, Math.PI*2);
@@ -677,7 +682,25 @@ function drawWoodenBox(box) {
   }
   ctx.restore();
 }
-
+function drawTree(tree) {
+  ctx.save();
+  ctx.fillStyle = "#8d5524";
+  ctx.fillRect(tree.x, H - 28 - tree.trunkH, tree.trunkW, tree.trunkH);
+  ctx.beginPath();
+  ctx.arc(tree.x + tree.trunkW/2, H - 28 - tree.trunkH, tree.foliageR, Math.PI*1.05, Math.PI*2.05, false);
+  ctx.fillStyle = tree.c;
+  ctx.shadowColor = "#4b7429";
+  ctx.shadowBlur = 18;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.beginPath();
+  ctx.arc(tree.x + tree.trunkW/2 - tree.foliageR/3, H - 28 - tree.trunkH - tree.foliageR/3, tree.foliageR/2.8, 0, Math.PI*2);
+  ctx.fillStyle = "#e3ffd7";
+  ctx.globalAlpha = 0.18;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
 function updateStars(){
   mario.stars.forEach(s=>{ s.x+=s.dx; s.y+=s.dy; s.dy+=0.1; s.life--; s.angle+=0.22; });
   mario.stars = mario.stars.filter(s=>s.life>0);
