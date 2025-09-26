@@ -146,6 +146,9 @@ let endSpawnInterval = null;
 // store active prompt listeners so we can remove them if user clicks Back
 let promptListeners = { click: null, key: null };
 
+let gameStarted = false;   // prevents Goombas moving until 'I'm Ready' is clicked
+
+
 // ---------- Input ----------
 const keys = {};
 window.addEventListener('keydown', (e) => { keys[e.key] = true; });
@@ -215,7 +218,6 @@ function selectScale(val) {
 // Back Button
 function goBackOneQuestion() {
   if (lastScaleQuestion >= 0 && currentQ > 0) {
-
     // If a text prompt is open, close it and remove its listeners
     if (showingPrompt) {
       openPrompt.classList.add('hidden');
@@ -224,10 +226,10 @@ function goBackOneQuestion() {
       if (promptListeners.key)   { window.removeEventListener('keypress', promptListeners.key);     promptListeners.key   = null; }
     }
 
-    // remove last answer
+    // remove last answer and step back
     answers.pop();
-    currentQ = lastScaleQuestion;  // step back
-    layoutAnswerBlocks();          // re-draw boxes
+    currentQ = lastScaleQuestion;
+    layoutAnswerBlocks();
 
     // Reset Mario position
     mario.x = W/2 - mario.w/2;
@@ -255,10 +257,7 @@ function showTextPrompt(qText, callback) {
   showingPrompt = true;
   openPrompt.classList.remove('hidden');
   // place the prompt box below the question panel
-  try {
-    openPrompt.style.top = (document.querySelector("canvas").offsetTop + 140) + "px";
-  } catch(e) { /* ignore */ }
-
+  openPrompt.style.top = (document.querySelector("canvas").offsetTop + 140) + "px";
   promptTitle.textContent = qText;
   promptInput.value = "";
   promptInput.focus();
@@ -281,17 +280,15 @@ function showTextPrompt(qText, callback) {
     if (promptListeners.key)   { window.removeEventListener('keypress', promptListeners.key);     promptListeners.key   = null; }
     callback(v);
   };
+
   function onEnter(e) { if (e.key === 'Enter') handler(); }
 
-  // attach and store listeners so Back can remove them
   promptListeners.click = handler;
-  promptListeners.key = onEnter;
+  promptListeners.key   = onEnter;
 
   promptSubmit.addEventListener('click', handler);
   window.addEventListener('keypress', onEnter);
-
 }
-
 
 // ---------- Server submission (anonymous) with local fallback ----------
 async function submitAnonymizedResults(payload) {
