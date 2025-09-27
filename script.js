@@ -1,4 +1,4 @@
-// script.js - v7: Back button now appears on prompt-based questions if previous was box-based (except end screen)
+// script.js - v8: Back button always appears when previous was box-based (except end screen), logic centralized
 
 // ---------- Configuration ----------
 const SINGLE_SUBMIT = false;
@@ -146,11 +146,6 @@ let answers = [];
 let surveyDone = false;
 let showingPrompt = false;
 let lastSelectionTime = 0;
-let lastScaleQuestion = -1;
-let lastScaleQuestionType = null; // <-- store type of last box-based question
-let endCelebrationRunning = false;
-let endJumpTimer = 0;
-let endSpawnInterval = null;
 
 // ---------- Input ----------
 const keys = Object.create(null);
@@ -204,6 +199,20 @@ function layoutAnswerBlocks() {
   }
 }
 
+// ---------- Centralized Back Button Logic ----------
+function updateBackButton() {
+  if (surveyDone || currentQ === 0 || currentQ > questions.length - 1) {
+    backBtn.style.display = "none";
+    return;
+  }
+  // Show if previous question exists and was box-based (scale)
+  if (questions[currentQ - 1] && questions[currentQ - 1].type === "scale") {
+    backBtn.style.display = "inline-block";
+  } else {
+    backBtn.style.display = "none";
+  }
+}
+
 // ---------- Strike & selection ----------
 function strikeBlock(index) {
   const b = answerBlocks[index];
@@ -221,34 +230,23 @@ function strikeBlock(index) {
 }
 function selectScale(val) {
   answers.push(val);
-  lastScaleQuestion = currentQ; // <-- store last question index
-  lastScaleQuestionType = questions[currentQ].type; // <-- store last question type
-  backBtn.style.display = "inline-block"; // Always show after scale answer
   advanceQuestion();
 }
 function goBackOneQuestion() {
-  if (lastScaleQuestion >= 0 && currentQ > 0) {
+  if (currentQ > 0) {
     answers.pop();
-    currentQ = lastScaleQuestion;
+    // Go back to previous question
+    currentQ -= 1;
     layoutAnswerBlocks();
     mario.x = W/2 - mario.w/2;
     mario.y = H - 28 - mario.h;
 
-    // --- FIX: if prompt is open, close it and reset showingPrompt ---
+    // If prompt is open, close it
     if (!openPrompt.classList.contains('hidden')) {
       openPrompt.classList.add('hidden');
       showingPrompt = false;
     }
-    
-    // Show/hide backBtn based on previous question type
-    if (questions[currentQ].type === "scale") {
-      backBtn.style.display = "inline-block";
-    } else if (currentQ > 0 && questions[currentQ-1] && questions[currentQ-1].type === "scale") {
-      backBtn.style.display = "inline-block";
-    } else {
-      backBtn.style.display = "none";
-    }
-    lastScaleQuestion = -1;
+    updateBackButton();
   }
 }
 function advanceQuestion() {
@@ -256,20 +254,11 @@ function advanceQuestion() {
   mario.x = clamp(mario.x, 48, W - 72);
   mario.vy = 0; mario.onGround = true;
 
-  // Show/hide backBtn for new question
   if (currentQ >= questions.length) {
-    backBtn.style.display = "none";
     finishSurvey();
   } else {
     layoutAnswerBlocks();
-    // Show on scale, or if previous was scale
-    if (questions[currentQ].type === "scale") {
-      backBtn.style.display = "inline-block";
-    } else if (currentQ > 0 && questions[currentQ-1] && questions[currentQ-1].type === "scale") {
-      backBtn.style.display = "inline-block";
-    } else {
-      backBtn.style.display = "none";
-    }
+    updateBackButton();
   }
 }
 function showTextPrompt(qText, callback) {
@@ -292,12 +281,7 @@ function showTextPrompt(qText, callback) {
   promptSubmit.addEventListener('click', handler);
   window.addEventListener('keypress', onEnter);
 
-  // Show backBtn for prompt if previous was box-based, and not end screen
-  if (currentQ > 0 && questions[currentQ-1] && questions[currentQ-1].type === "scale" && !surveyDone) {
-    backBtn.style.display = "inline-block";
-  } else {
-    backBtn.style.display = "none";
-  }
+  updateBackButton();
 }
 
 // ---------- Server submission ----------
@@ -416,6 +400,7 @@ function createFirework(x, y) {
 
 // ---------- Init & main loop ----------
 layoutAnswerBlocks();
+updateBackButton();
 
 (function mainLoop() {
   if (SINGLE_SUBMIT && localStorage.getItem(LOCAL_KEY) === '1' && !surveyDone) {
@@ -834,6 +819,6 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   }
   ctx.fillText(line, x, y);
 }
+
+// Attach events
 backBtn.addEventListener('click', goBackOneQuestion);
-const originalAdvance = advanceQuestion;
-advanceQuestion = function () { originalAdvance(); layoutAnswerBlocks(); };
