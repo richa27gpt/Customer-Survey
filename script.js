@@ -6,7 +6,6 @@ const LOCAL_KEY = 'survey_completed_v1';
 const LOCAL_RESPONSES_KEY = 'survey_responses';
 
 // ---------- GOOGLE FORM ENTRY MAPPING (Update this if your form changes) ----------
-// Only REAL user questions, NOT section headers!
 const entryMapping = [
   "entry.1724442667", // How would you rate the overall vision...
   "entry.146502797",  // To what extent do you feel DDIE’s leadership...
@@ -27,7 +26,7 @@ const entryMapping = [
   "entry.1222441451", // What do you think DDIE is doing well?
   "entry.2000623643", // What areas do you think DDIE could improve?
 ];
-
+  
 // ---------- QUESTIONS ----------
 const questions = [
   { section: "Leadership", text: "How would you rate the overall vision and strategic direction provided by DDIE’s leadership?", type: "scale", scale: 5 },
@@ -257,8 +256,7 @@ function strikeBlock(index) {
   setTimeout(() => { selectScale(b.val); }, 380);
 }
 function selectScale(val) {
-  // Always store scale as string for Google Forms!
-  answers.push(val.toString());
+  answers.push(val);
   advanceQuestion();
 }
 function goBackOneQuestion() {
@@ -315,12 +313,11 @@ function showTextPrompt(qText, callback) {
 
 // ---------- GOOGLE FORM SUBMISSION ----------
 function sendResponsesToGoogleForm(answers) {
-  // Debug: See what is actually sent
-  console.log("Submitting to Google Form:", answers);
-  const googleFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfllOaHEoxhUpwB0MuqQuh7malLyl3bGuemvr5BflVq0JqL6Q/formResponse";
+  // const googleFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfllOaHEoxhUpwB0MuqQuh7malLyl3bGuemvr5BflVq0JqL6Q/formResponse";
+  const googleFormUrl = "https://docs.google.com/forms/u/0/d/e/1FAIpQLSfllOaHEoxhUpwB0MuqQuh7malLyl3bGuemvr5BflVq0JqL6Q/formResponse";
   const data = {};
   for (let i = 0; i < answers.length; i++) {
-    data[entryMapping[i]] = answers[i] ?? '';
+    if (entryMapping[i]) data[entryMapping[i]] = answers[i];
   }
   const formBody = Object.entries(data)
     .map(([k, v]) => encodeURIComponent(k) + "=" + encodeURIComponent(v))
@@ -397,15 +394,18 @@ function finishSurvey() {
     soundBtn.style.cursor = "not-allowed";
     soundBtn.title = "Sound disabled after survey";
   }
-  submitAnonymizedResults(payload).then(success => {
-    openPrompt.classList.add('hidden');
-    endScreen.classList.remove('hidden');
-    startEndCelebration();
-  }).catch(() => {
-    openPrompt.classList.add('hidden');
-    endScreen.classList.remove('hidden');
-    startEndCelebration();
-  });
+  // submitAnonymizedResults(payload).then(success => {
+  //   openPrompt.classList.add('hidden');
+  //   endScreen.classList.remove('hidden');
+  //   startEndCelebration();
+  // }).catch(() => {
+  //   openPrompt.classList.add('hidden');
+  //   endScreen.classList.remove('hidden');
+  //   startEndCelebration();
+  // });
+  openPrompt.classList.add('hidden');
+  endScreen.classList.remove('hidden');
+  startEndCelebration();
   backBtn.style.display = "none"; // Hide backBtn on end screen
 }
 function startEndCelebration() {
