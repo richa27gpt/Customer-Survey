@@ -36,9 +36,9 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const W = canvas.width, H = canvas.height;
 
-// // Instructions overlay
-// const overlay = document.getElementById("overlay");
-// const startBtn = document.getElementById("startBtn");
+// Instructions overlay
+const overlay = document.getElementById("overlay");
+const startBtn = document.getElementById("startBtn");
 
 // // ---- INSTRUCTIONS UPDATE
 // const instructionsBox = document.getElementById("instructions");
@@ -46,11 +46,11 @@ const W = canvas.width, H = canvas.height;
 //   instructionsBox.innerHTML += "<br>- <b>Tip:</b> Mario can rest on the <span style='color: #b97a56'>wooden box</span> (center-left, looks like Angry Birds wood) to avoid Goombas while you read/think!<br>- Enjoy the trees on the left!";
 // }
 
-// startBtn.addEventListener("click", () => {
-//   overlay.style.display = "none";
-//   canvas.focus();
-//   gameStarted = true;
-// });
+startBtn.addEventListener("click", () => {
+  overlay.style.display = "none";
+  canvas.focus();
+  gameStarted = true;
+});
 
 const openPrompt = document.getElementById('openPrompt');
 const promptTitle = document.getElementById('promptTitle');
