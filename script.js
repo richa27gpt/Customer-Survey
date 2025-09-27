@@ -234,6 +234,12 @@ function goBackOneQuestion() {
     mario.x = W/2 - mario.w/2;
     mario.y = H - 28 - mario.h;
 
+    // --- FIX: if prompt is open, close it and reset showingPrompt ---
+    if (!openPrompt.classList.contains('hidden')) {
+      openPrompt.classList.add('hidden');
+      showingPrompt = false;
+    }
+    
     // Show/hide backBtn based on previous question type
     if (questions[currentQ].type === "scale") {
       backBtn.style.display = "inline-block";
