@@ -5,6 +5,28 @@ const SINGLE_SUBMIT = false;
 const LOCAL_KEY = 'survey_completed_v1';
 const LOCAL_RESPONSES_KEY = 'survey_responses';
 
+// ---------- GOOGLE FORM ENTRY MAPPING (Update this if your form changes) ----------
+const entryMapping = [
+  "entry.50726676",           // UNKNOWN_QUESTION (likely intro/page break/section)
+  "entry.1323361503",         // UNKNOWN_QUESTION (likely intro/page break/section)
+  "entry.1795429248_sentinel",// Q: How would you rate the overall vision...
+  "entry.1353751027_sentinel",// Q: To what extent do you feel DDIE’s leadership...
+  "entry.1307954471",         // UNKNOWN_QUESTION (likely section)
+  "entry.275686139_sentinel", // Q: How satisfied are you with account manager?
+  "entry.1099492170_sentinel",// Q: Has your account manager changed this year?
+  "entry.1639527261_sentinel",// Q: To what extent do you feel your account manager...
+  "entry.132772456",          // UNKNOWN_QUESTION
+  "entry.360369907",          // UNKNOWN_QUESTION
+  "entry.681340901_sentinel", // Q: How would you rate the overall quality...
+  "entry.724685650_sentinel", // Q: How satisfied with DDIE’s response times...
+  "entry.828988626_sentinel", // Q: How do you rate DDIE’s overall technical competency...
+  "entry.397835101",          // UNKNOWN_QUESTION
+  "entry.557420901_sentinel", // Q: How would you rate DDIE’s credibility...
+  "entry.1176796185_sentinel",// Q: How engaged do you feel DDIE is...
+  "entry.2047490232",         // UNKNOWN_QUESTION
+  "entry.2132866625"          // UNKNOWN_QUESTION
+];
+
 // ---------- QUESTIONS ----------
 const questions = [
   { section: "Leadership", text: "How would you rate the overall vision and strategic direction provided by DDIE’s leadership?", type: "scale", scale: 5 },
@@ -289,6 +311,24 @@ function showTextPrompt(qText, callback) {
   updateBackButton();
 }
 
+// ---------- GOOGLE FORM SUBMISSION ----------
+function sendResponsesToGoogleForm(answers) {
+  const googleFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfllOaHEoxhUpwB0MuqQuh7malLyl3bGuemvr5BflVq0JqL6Q/formResponse";
+  const data = {};
+  for (let i = 0; i < answers.length; i++) {
+    if (entryMapping[i]) data[entryMapping[i]] = answers[i];
+  }
+  const formBody = Object.entries(data)
+    .map(([k, v]) => encodeURIComponent(k) + "=" + encodeURIComponent(v))
+    .join("&");
+  fetch(googleFormUrl, {
+    method: "POST",
+    mode: "no-cors", // Google Forms does not provide CORS headers
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: formBody
+  });
+}
+
 // ---------- Server submission ----------
 async function submitAnonymizedResults(payload) {
   try {
@@ -334,6 +374,10 @@ function finishSurvey() {
       clientTime: new Date().toISOString()
     }
   };
+
+  // --- Google Form Submission ---
+  sendResponsesToGoogleForm(answers);
+
   mario.x = Math.round(W/2 - mario.w/2);
   mario.y = H - 28 - mario.h;
   mario.vy = 0;
