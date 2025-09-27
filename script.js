@@ -414,20 +414,15 @@ layoutAnswerBlocks();
     } else {
       let onPipe = false;
       for (const p of pipes) {
-        const capTop = p.y - p.h - 14; // top of the green cap
         if (
           mario.x + mario.w > p.x &&
           mario.x < p.x + p.r * 2 &&
-          Math.abs(mario.y + mario.h - capTop) < 6 &&
+          Math.abs(mario.y + mario.h - (p.y - p.h)) < 6 &&
           mario.vy >= 0
         ) {
-          mario.y = capTop - mario.h;
-          mario.vy = 0;
-          mario.onGround = true;
-          onPipe = true;
+          mario.y = p.y - p.h - mario.h; mario.vy = 0; mario.onGround = true; onPipe = true;
           break;
         }
-      }
       }
       if (!onPipe && mario.y + mario.h >= H - 28) {
         mario.y = H - 28 - mario.h; mario.vy = 0; mario.onGround = true;
