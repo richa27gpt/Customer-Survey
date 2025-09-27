@@ -40,12 +40,6 @@ const W = canvas.width, H = canvas.height;
 const overlay = document.getElementById("overlay");
 const startBtn = document.getElementById("startBtn");
 
-// // ---- INSTRUCTIONS UPDATE
-// const instructionsBox = document.getElementById("instructions");
-// if (instructionsBox) {
-//   instructionsBox.innerHTML += "<br>- <b>Tip:</b> Mario can rest on the <span style='color: #b97a56'>wooden box</span> (center-left, looks like Angry Birds wood) to avoid Goombas while you read/think!<br>- Enjoy the trees on the left!";
-// }
-
 startBtn.addEventListener("click", () => {
   overlay.style.display = "none";
   canvas.focus();
@@ -83,19 +77,12 @@ const goombas = [
 
 // --- Trees setup (cartoon, left of screen and box) ---
 const trees = [
-  { x: 38, trunkW: 16, trunkH: 42, foliageR: 36, trunkC: "e6b07a", foliageC: "#88b04b" },
-  { x: 85, trunkW: 14, trunkH: 34, foliageR: 26, trunkC: "e6b07a", foliageC: "#77a042" },
-  { x: 120, trunkW: 12, trunkH: 27, foliageR: 19, trunkC: "e6b07a", foliageC: "#a5cc6b" },
-  { x: 62, trunkW: 12, trunkH: 21, foliageR: 14, trunkC: "e6b07a", foliageC: "#b2e067" },
-  { x: 110, trunkW: 9, trunkH: 16, foliageR: 8, trunkC: "e6b07a", foliageC: "#d7f6b5" }
+  { x: 38, trunkW: 16, trunkH: 42, foliageR: 36, c: "#88b04b" },
+  { x: 85, trunkW: 14, trunkH: 34, foliageR: 26, c: "#77a042" },
+  { x: 120, trunkW: 12, trunkH: 27, foliageR: 19, c: "#a5cc6b" },
+  { x: 62, trunkW: 12, trunkH: 21, foliageR: 14, c: "#b2e067" },
+  { x: 110, trunkW: 9, trunkH: 16, foliageR: 8, c: "#d7f6b5" }
 ];
-// const trees = [
-//   { x: 38, trunkW: 16, trunkH: 42, foliageR: 36, c: "#88b04b" },
-//   { x: 85, trunkW: 14, trunkH: 34, foliageR: 26, c: "#77a042" },
-//   { x: 120, trunkW: 12, trunkH: 27, foliageR: 19, c: "#a5cc6b" },
-//   { x: 62, trunkW: 12, trunkH: 21, foliageR: 14, c: "#b2e067" },
-//   { x: 110, trunkW: 9, trunkH: 16, foliageR: 8, c: "#d7f6b5" }
-// ];
 
 // --- Sounds ---
 const jumpSound = new Audio('sounds/jump.mp3');
