@@ -7,25 +7,45 @@ const LOCAL_RESPONSES_KEY = 'survey_responses';
 
 // ---------- GOOGLE FORM ENTRY MAPPING (Update this if your form changes) ----------
 const entryMapping = [
-  "entry.50726676",           // UNKNOWN_QUESTION (likely intro/page break/section)
-  "entry.1323361503",         // UNKNOWN_QUESTION (likely intro/page break/section)
-  "entry.1795429248_sentinel",// Q: How would you rate the overall vision...
-  "entry.1353751027_sentinel",// Q: To what extent do you feel DDIE’s leadership...
-  "entry.1307954471",         // UNKNOWN_QUESTION (likely section)
-  "entry.275686139_sentinel", // Q: How satisfied are you with account manager?
-  "entry.1099492170_sentinel",// Q: Has your account manager changed this year?
-  "entry.1639527261_sentinel",// Q: To what extent do you feel your account manager...
-  "entry.132772456",          // UNKNOWN_QUESTION
-  "entry.360369907",          // UNKNOWN_QUESTION
-  "entry.681340901_sentinel", // Q: How would you rate the overall quality...
-  "entry.724685650_sentinel", // Q: How satisfied with DDIE’s response times...
-  "entry.828988626_sentinel", // Q: How do you rate DDIE’s overall technical competency...
-  "entry.397835101",          // UNKNOWN_QUESTION
-  "entry.557420901_sentinel", // Q: How would you rate DDIE’s credibility...
-  "entry.1176796185_sentinel",// Q: How engaged do you feel DDIE is...
-  "entry.2047490232",         // UNKNOWN_QUESTION
-  "entry.2132866625"          // UNKNOWN_QUESTION
+  "entry.50726676",
+  "entry.1323361503",
+  "entry.1795429248",
+  "entry.1353751027",
+  "entry.1307954471",
+  "entry.275686139",
+  "entry.1099492170",
+  "entry.1639527261",
+  "entry.132772456",
+  "entry.360369907",
+  "entry.681340901",
+  "entry.724685650",
+  "entry.828988626",
+  "entry.397835101",
+  "entry.557420901",
+  "entry.1176796185",
+  "entry.2047490232",
+  "entry.2132866625"
 ];
+// const entryMapping = [
+//   "entry.50726676",           // UNKNOWN_QUESTION (likely intro/page break/section)
+//   "entry.1323361503",         // UNKNOWN_QUESTION (likely intro/page break/section)
+//   "entry.1795429248_sentinel",// Q: How would you rate the overall vision...
+//   "entry.1353751027_sentinel",// Q: To what extent do you feel DDIE’s leadership...
+//   "entry.1307954471",         // UNKNOWN_QUESTION (likely section)
+//   "entry.275686139_sentinel", // Q: How satisfied are you with account manager?
+//   "entry.1099492170_sentinel",// Q: Has your account manager changed this year?
+//   "entry.1639527261_sentinel",// Q: To what extent do you feel your account manager...
+//   "entry.132772456",          // UNKNOWN_QUESTION
+//   "entry.360369907",          // UNKNOWN_QUESTION
+//   "entry.681340901_sentinel", // Q: How would you rate the overall quality...
+//   "entry.724685650_sentinel", // Q: How satisfied with DDIE’s response times...
+//   "entry.828988626_sentinel", // Q: How do you rate DDIE’s overall technical competency...
+//   "entry.397835101",          // UNKNOWN_QUESTION
+//   "entry.557420901_sentinel", // Q: How would you rate DDIE’s credibility...
+//   "entry.1176796185_sentinel",// Q: How engaged do you feel DDIE is...
+//   "entry.2047490232",         // UNKNOWN_QUESTION
+//   "entry.2132866625"          // UNKNOWN_QUESTION
+// ];
 
 // ---------- QUESTIONS ----------
 const questions = [
