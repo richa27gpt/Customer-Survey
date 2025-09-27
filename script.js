@@ -1,4 +1,4 @@
-// script.js - v5: Angry Birds-style wooden box, more/faster clouds, box moved toward center, pipes right, trees on the left
+// script.js - v6: Angry Birds-style wooden box, more/faster clouds, box moved toward center, pipes right, trees on left, FIX Mario sits on top of pipe cap
 
 // ---------- Configuration ----------
 const SINGLE_SUBMIT = false;
@@ -36,15 +36,21 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const W = canvas.width, H = canvas.height;
 
-// Instructions overlay
-const overlay = document.getElementById("overlay");
-const startBtn = document.getElementById("startBtn");
+// // Instructions overlay
+// const overlay = document.getElementById("overlay");
+// const startBtn = document.getElementById("startBtn");
 
-startBtn.addEventListener("click", () => {
-  overlay.style.display = "none";
-  canvas.focus();
-  gameStarted = true;
-});
+// // ---- INSTRUCTIONS UPDATE
+// const instructionsBox = document.getElementById("instructions");
+// if (instructionsBox) {
+//   instructionsBox.innerHTML += "<br>- <b>Tip:</b> Mario can rest on the <span style='color: #b97a56'>wooden box</span> (center-left, looks like Angry Birds wood) to avoid Goombas while you read/think!<br>- Enjoy the trees on the left!";
+// }
+
+// startBtn.addEventListener("click", () => {
+//   overlay.style.display = "none";
+//   canvas.focus();
+//   gameStarted = true;
+// });
 
 const openPrompt = document.getElementById('openPrompt');
 const promptTitle = document.getElementById('promptTitle');
@@ -414,13 +420,17 @@ layoutAnswerBlocks();
     } else {
       let onPipe = false;
       for (const p of pipes) {
+        // --- FIX: Mario sits on pipe cap, not pipe body ---
+        const pipeTop = p.y - p.h - 14;      // The cap is 14px tall, sits on top of pipe
+        const pipeLeft = p.x - 4;            // Cap is wider than pipe body (extends 4px left)
+        const pipeRight = p.x + p.r*2 + 4;   // Cap is wider than pipe body (extends 4px right)
         if (
-          mario.x + mario.w > p.x &&
-          mario.x < p.x + p.r * 2 &&
-          Math.abs(mario.y + mario.h - (p.y - p.h)) < 6 &&
+          mario.x + mario.w > pipeLeft &&
+          mario.x < pipeRight &&
+          Math.abs(mario.y + mario.h - pipeTop) < 8 &&
           mario.vy >= 0
         ) {
-          mario.y = p.y - p.h - mario.h; mario.vy = 0; mario.onGround = true; onPipe = true;
+          mario.y = pipeTop - mario.h; mario.vy = 0; mario.onGround = true; onPipe = true;
           break;
         }
       }
@@ -544,8 +554,10 @@ layoutAnswerBlocks();
   // Draw right-side pipes
   for (const p of pipes) {
     const px = p.x, py = p.y;
+    // Pipe body
     ctx.fillStyle = "#2ecc71";
     ctx.fillRect(px, py - p.h, p.r*2, p.h);
+    // Cap
     ctx.fillStyle = "#27ae60";
     ctx.fillRect(px - 4, py - p.h - 14, p.r*2 + 8, 14);
     ctx.strokeStyle = "#145a32"; ctx.lineWidth = 2;
@@ -641,7 +653,6 @@ function roundRect(ctx, x, y, w, h, r, fill, stroke) {
   if (fill) ctx.fill();
   if (stroke) ctx.stroke();
 }
-// --- Fancy wooden box (Angry Birds style) ---
 function drawWoodenBox(box) {
   ctx.save();
   ctx.fillStyle = "#b97a56";
