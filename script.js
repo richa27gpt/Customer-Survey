@@ -147,6 +147,11 @@ let surveyDone = false;
 let showingPrompt = false;
 let lastSelectionTime = 0;
 
+// --- End-screen celebration variables ---
+let endCelebrationRunning = false;
+let endJumpTimer = 0;
+let endSpawnInterval = null;
+
 // ---------- Input ----------
 const keys = Object.create(null);
 const BLOCKED = new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ']);
