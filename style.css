@@ -52,7 +52,7 @@ canvas#gameCanvas{
   padding:32px 40px;
   width:600px;
   max-width:90%;
-  font-family:"Comic Sans MS", cursive, sans-serif; /* playful, per your request */
+  font-family:"Comic Sans MS", cursive, sans-serif;
   box-shadow:0 8px 24px rgba(0,0,0,0.25);
   text-align:left;
   animation:fadeIn 0.5s ease;
@@ -96,26 +96,42 @@ canvas#gameCanvas{
 #startBtn:active{ transform:translateY(1px); }
 
 /* =========================
-   Sound toggle
+   Sound toggle (styled to match back button, placed near game box)
    ========================= */
 #soundToggle{
   position:absolute;
-  top:20px;
-  right:20px;
+  /* Place closer to game box, not far right. Keep at top. */
+  right: 68px;  /* Tweak this value to move horizontally (lower = more left, try 60-80px) */
+  top: 28px;    /* Same as before for top alignment */
   font-size:22px;
-  background:rgba(255,255,255,0.85);
-  border:2px solid #1e88e5;
-  border-radius:50%;
-  width:40px;
-  height:40px;
+  background: #fcf6de;
+  color: #226622;
+  border: 2px solid #e0c97f;
+  border-radius: 18px;
+  width: 48px;
+  height: 48px;
+  box-shadow: 2px 3px 14px rgba(30,136,229,0.08);
   cursor:pointer;
   z-index:50;
   display:flex;
   align-items:center;
   justify-content:center;
-  transition:background 0.2s;
+  transition:background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+  opacity:0.93;
 }
-#soundToggle:hover{ background:rgba(30,136,229,0.15); }
+#soundToggle:hover, #soundToggle:focus {
+  background: #f8eecb;
+  color: #1b4e2d;
+  box-shadow: 2px 6px 18px rgba(30,136,229,0.16);
+  opacity:1;
+  transform: translateY(-2px) scale(1.04);
+}
+#soundToggle:active {
+  background: #e0c97f;
+  color: #226622;
+  box-shadow: 1px 2px 8px rgba(30,136,229,0.07);
+  transform: translateY(1px) scale(0.98);
+}
 
 /* =========================
    Text Prompt (modal)
@@ -125,7 +141,7 @@ canvas#gameCanvas{
   top: 140px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.4); /* lighter opacity for stronger glass effect */
+  background: rgba(255, 255, 255, 0.4);
   border-radius: 14px;
   padding: 24px 30px;
   width: 500px;
@@ -133,8 +149,7 @@ canvas#gameCanvas{
   box-shadow: 0 8px 24px rgba(0,0,0,0.25);
   text-align: left;
   z-index: 1000;
-
-  backdrop-filter: none; 
+  backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
 #openPrompt.hidden{ display:none; }
@@ -153,9 +168,9 @@ canvas#gameCanvas{
   border:1.6px solid #ccc;
   border-radius:10px;
   font-size:15px;
-  font-family:inherit;               /* match Inter / Segoe UI */
+  font-family:inherit;
   outline:none;
-  background:rgba(255,255,255,0.88); /* soft translucent */
+  background:rgba(255,255,255,0.88);
   box-shadow:inset 0 1px 3px rgba(0,0,0,0.10);
   transition:border-color 0.2s, box-shadow 0.2s;
 }
@@ -165,7 +180,7 @@ canvas#gameCanvas{
 }
 
 .prompt-actions {
-  text-align: right;   /* ✅ aligns the button to the right */
+  text-align: right;
   margin-top: 12px;
 }
 
@@ -188,10 +203,10 @@ canvas#gameCanvas{
    ========================= */
 #backBtn {
   position: absolute;
-  left: 48px; /* Move to be inside the white game box, tweak for your layout */
-  bottom: 38px; /* Align to green ground & inside game box */
+  left: 48px;
+  bottom: 38px;
   z-index: 30;
-  padding: 8px 18px; /* Smaller button */
+  padding: 8px 18px;
   background: #fcf6de;
   color: #226622;
   font-size: 1em;
@@ -223,7 +238,7 @@ canvas#gameCanvas{
    ========================= */
 #endScreen{
   position:absolute;
-  top:110px;                         /* similar vertical to prompt */
+  top:110px;
   left:50%;
   transform:translateX(-50%);
   padding:22px;
@@ -235,7 +250,7 @@ canvas#gameCanvas{
   border-radius:12px;
   box-shadow:0 14px 36px rgba(30,136,229,0.12);
   color:var(--text);
-  z-index:1001;                       /* above prompt if both toggled */
+  z-index:1001;
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
 }
@@ -255,6 +270,7 @@ canvas#gameCanvas{
   #openPrompt{ width:92%; top:100px; }
   #endScreen{ width:92%; top:100px; }
   #backBtn { left: 8px; bottom: 10px; }
+  #soundToggle { right: 10px; top: 12px; }
 }
 
 /* =========================
@@ -264,10 +280,3 @@ canvas#gameCanvas{
   from{ opacity:0; transform:translateY(12px); }
   to{   opacity:1; transform:translateY(0); }
 }
-
-/* =========================
-   Admin page (unchanged)
-   ========================= */
-.admin-wrap{ max-width:980px; margin:18px auto; padding:18px; background:#fff; border-radius:10px; border:1px solid #e3f2fd }
-.admin-actions{ display:flex; gap:8px; align-items:center }
-.admin-stats{ display:flex; flex-direction:column; gap:12px; margin-top:12px }
