@@ -46,13 +46,13 @@ canvas#gameCanvas{
 }
 
 .overlay-box{
-  background:#fdf6e3;                /* soft cream */
-  border:2px solid #e0c97f;          /* warm border */
+  background:#fdf6e3;
+  border:2px solid #e0c97f;
   border-radius:12px;
   padding:32px 40px;
   width:600px;
   max-width:90%;
-  font-family:"Comic Sans MS", cursive, sans-serif; /* playful, per your request */
+  font-family:"Comic Sans MS", cursive, sans-serif;
   box-shadow:0 8px 24px rgba(0,0,0,0.25);
   text-align:left;
   animation:fadeIn 0.5s ease;
@@ -96,92 +96,42 @@ canvas#gameCanvas{
 #startBtn:active{ transform:translateY(1px); }
 
 /* =========================
-   Sound toggle
+   Prettier Sound Toggle (bottom right, inside game area, styled like backBtn)
    ========================= */
 #soundToggle{
-  position:absolute;
-  top:20px;
-  right:20px;
-  font-size:22px;
-  background:rgba(255,255,255,0.85);
-  border:2px solid #1e88e5;
-  border-radius:50%;
-  width:40px;
-  height:40px;
-  cursor:pointer;
-  z-index:50;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  transition:background 0.2s;
-}
-#soundToggle:hover{ background:rgba(30,136,229,0.15); }
-
-/* =========================
-   Text Prompt (modal)
-   ========================= */
-#openPrompt {
   position: absolute;
-  top: 140px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255, 255, 255, 0.4); /* lighter opacity for stronger glass effect */
-  border-radius: 14px;
-  padding: 24px 30px;
-  width: 500px;
-  max-width: 90%;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-  text-align: left;
-  z-index: 1000;
-
-  backdrop-filter: none; 
-  -webkit-backdrop-filter: none;
-}
-#openPrompt.hidden{ display:none; }
-
-#promptTitle, .prompt-title{
-  font-weight:700;
-  color:var(--accent);
-  margin:0 0 10px 0;
-  font-family:inherit;
-}
-
-#promptInput{
-  width:100%;
-  padding:12px 14px;
-  margin-top:12px;
-  border:1.6px solid #ccc;
-  border-radius:10px;
-  font-size:15px;
-  font-family:inherit;               /* match Inter / Segoe UI */
-  outline:none;
-  background:rgba(255,255,255,0.88); /* soft translucent */
-  box-shadow:inset 0 1px 3px rgba(0,0,0,0.10);
-  transition:border-color 0.2s, box-shadow 0.2s;
-}
-#promptInput:focus{
-  border-color:#1e88e5;
-  box-shadow:0 0 6px rgba(30,136,229,0.4);
-}
-
-.prompt-actions {
-  text-align: right;   /* ✅ aligns the button to the right */
-  margin-top: 12px;
-}
-
-#promptSubmit {
-  padding: 10px 18px;
-  border: none;
-  border-radius: 8px;
-  background: #1e88e5;
-  color: #fff;
-  font-size: 15px;
-  font-weight: 600;
+  right: 44px; /* Move to be just inside right edge of canvas; adjust as needed */
+  bottom: 38px;
+  z-index: 30;
+  width: 48px;
+  height: 48px;
+  border-radius: 18px;
+  background: #fcf6de;
+  color: #226622;
+  border: 2px solid #e0c97f;
+  box-shadow: 2px 3px 14px rgba(30,136,229,0.08);
   cursor: pointer;
-  transition: background 0.2s, transform 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+  outline: none;
+  opacity: 0.93;
 }
-#promptSubmit:hover { background:#1565c0; transform:translateY(-2px); }
-#promptSubmit:active { transform:translateY(1px); }
+#soundToggle:hover, #soundToggle:focus {
+  background: #f8eecb;
+  color: #1b4e2d;
+  box-shadow: 2px 6px 18px rgba(30,136,229,0.16);
+  opacity: 1;
+  transform: translateY(-2px) scale(1.04);
+}
+#soundToggle:active {
+  background: #e0c97f;
+  color: #226622;
+  box-shadow: 1px 2px 8px rgba(30,136,229,0.07);
+  transform: translateY(1px) scale(0.98);
+}
 
 /* =========================
    Prettier Back Button (bottom left, inside game area)
@@ -192,7 +142,6 @@ canvas#gameCanvas{
   bottom: 38px; /* Align to green ground & inside game box */
   z-index: 30;
   padding: 8px 18px; /* Smaller button */
-  /* padding: 7px 17px; /* Smaller button */
   background: #fcf6de;
   color: #226622;
   font-size: 1em;
@@ -224,7 +173,7 @@ canvas#gameCanvas{
    ========================= */
 #endScreen{
   position:absolute;
-  top:110px;                         /* similar vertical to prompt */
+  top:110px;
   left:50%;
   transform:translateX(-50%);
   padding:22px;
@@ -236,7 +185,7 @@ canvas#gameCanvas{
   border-radius:12px;
   box-shadow:0 14px 36px rgba(30,136,229,0.12);
   color:var(--text);
-  z-index:1001;                       /* above prompt if both toggled */
+  z-index:1001;
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
 }
@@ -256,6 +205,7 @@ canvas#gameCanvas{
   #openPrompt{ width:92%; top:100px; }
   #endScreen{ width:92%; top:100px; }
   #backBtn { left: 8px; bottom: 10px; }
+  #soundToggle { right: 8px; bottom: 10px; }
 }
 
 /* =========================
