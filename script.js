@@ -40,12 +40,6 @@ const W = canvas.width, H = canvas.height;
 const overlay = document.getElementById("overlay");
 const startBtn = document.getElementById("startBtn");
 
-// // ---- INSTRUCTIONS UPDATE
-// const instructionsBox = document.getElementById("instructions");
-// if (instructionsBox) {
-//   instructionsBox.innerHTML += "<br>- <b>Tip:</b> Mario can rest on the <span style='color: #b97a56'>wooden box</span> (center-left, looks like Angry Birds wood) to avoid Goombas while you read/think!<br>- Enjoy the trees on the left!";
-// }
-
 startBtn.addEventListener("click", () => {
   overlay.style.display = "none";
   canvas.focus();
