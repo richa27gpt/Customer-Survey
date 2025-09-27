@@ -412,23 +412,42 @@ layoutAnswerBlocks();
     if (onBox) {
       mario.y = box.y - mario.h; mario.vy = 0; mario.onGround = true;
     } else {
+      // For each pipe in the update/gravity/platforms section:
       let onPipe = false;
       for (const p of pipes) {
+        // Pipe cap top is at (p.y - p.h - 14), cap height is 14
+        const capTop = p.y - p.h - 14;
+        const capBottom = p.y - p.h;
         if (
-          mario.x + mario.w > p.x &&
-          mario.x < p.x + p.r * 2 &&
-          Math.abs(mario.y + mario.h - (p.y - p.h)) < 6 &&
+          mario.x + mario.w > p.x - 4 &&
+          mario.x < p.x + p.r * 2 + 4 &&
+          Math.abs(mario.y + mario.h - capTop) < 6 &&
           mario.vy >= 0
         ) {
-          mario.y = p.y - p.h - mario.h; mario.vy = 0; mario.onGround = true; onPipe = true;
+          mario.y = capTop - mario.h;
+          mario.vy = 0;
+          mario.onGround = true;
+          onPipe = true;
           break;
         }
       }
-      if (!onPipe && mario.y + mario.h >= H - 28) {
-        mario.y = H - 28 - mario.h; mario.vy = 0; mario.onGround = true;
-      } else if (!onPipe && !onBox) {
-        mario.onGround = false;
-      }
+      // let onPipe = false;
+      // for (const p of pipes) {
+      //   if (
+      //     mario.x + mario.w > p.x &&
+      //     mario.x < p.x + p.r * 2 &&
+      //     Math.abs(mario.y + mario.h - (p.y - p.h)) < 6 &&
+      //     mario.vy >= 0
+      //   ) {
+      //     mario.y = p.y - p.h - mario.h; mario.vy = 0; mario.onGround = true; onPipe = true;
+      //     break;
+      //   }
+      // }
+      // if (!onPipe && mario.y + mario.h >= H - 28) {
+      //   mario.y = H - 28 - mario.h; mario.vy = 0; mario.onGround = true;
+      // } else if (!onPipe && !onBox) {
+      //   mario.onGround = false;
+      // }
     }
 
     // Goomba collision (skip if Mario on box)
