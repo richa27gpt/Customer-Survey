@@ -1,4 +1,4 @@
-// script.js - v6: Improved color scheme for trees, wooden box, and goombas. Trees on left, fancier wood, vibrant goombas, more/faster clouds, pipes only on right
+// script.js - v6: Original color scheme, pipe cap fix, no instructions in JS
 
 // ---------- Configuration ----------
 const SINGLE_SUBMIT = false;
@@ -36,28 +36,6 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const W = canvas.width, H = canvas.height;
 
-// Instructions overlay
-const overlay = document.getElementById("overlay");
-const startBtn = document.getElementById("startBtn");
-
-// ---- INSTRUCTIONS UPDATE
-const instructionsBox = document.getElementById("instructions");
-if (instructionsBox) {
-  instructionsBox.innerHTML += "<br>- <b>Tip:</b> Mario can rest on the <span style='color: #e8b26a'>wooden box</span> (center-left, looks like Angry Birds wood) to avoid Goombas while you read/think!<br>- Enjoy the trees on the left!";
-}
-
-startBtn.addEventListener("click", () => {
-  overlay.style.display = "none";
-  canvas.focus();
-  gameStarted = true;
-});
-
-const openPrompt = document.getElementById('openPrompt');
-const promptTitle = document.getElementById('promptTitle');
-const promptInput = document.getElementById('promptInput');
-const promptSubmit = document.getElementById('promptSubmit');
-const endScreen = document.getElementById('endScreen');
-
 // ---------- Game entities ----------
 const gravity = 0.38;
 const mario = {
@@ -67,18 +45,7 @@ const mario = {
   stars: []
 };
 
-// --- Color Palette ---
-const TREE_TRUNKS   = ["#A0522D", "#B8860B", "#7B5E57", "#AD6B2B"];
-const TREE_FOLIAGE  = ["#7ED957", "#44B09E", "#A9DFBF", "#229954", "#B2FF66", "#6FEAA9"];
-const BOX_MAIN      = "#E8B26A";
-const BOX_EDGE      = "#C97A46";
-const BOX_HL        = "#FFD580";
-const BOX_NAIL      = "#BFC9CA";
-const GOOMBA_BODY   = "#B05E1E";
-const GOOMBA_FEET   = "#F5CBA7";
-const GOOMBA_OUTLINE= "#7B3F00";
-
-// Wooden box for Mario to rest (fancy, Angry Birds style, center-left)
+// Wooden box (classic brown, original color scheme)
 const box = {
   x: 160,
   y: H - 28 - 48,
@@ -86,19 +53,17 @@ const box = {
   h: 48
 };
 
-// Goombas (classic Mario style)
+// Goombas (simple brown, original)
 const goombas = [
-  { x: 390, y: H - 28 - 24, w: 22, h: 24, dir: 1, spd: 1.06, bob: 0, lastChange: 0 },
-  { x: 670, y: H - 28 - 24, w: 22, h: 24, dir: -1, spd: 0.96, bob: 0, lastChange: 0 }
+  { x: 390, y: H - 28 - 20, w: 22, h: 20, dir: 1, spd: 1.06, bob: 0, lastChange: 0 },
+  { x: 670, y: H - 28 - 20, w: 22, h: 20, dir: -1, spd: 0.96, bob: 0, lastChange: 0 }
 ];
 
-// --- Trees setup (cartoon, left of screen and box) ---
+// Trees (original, simple, for visual variety)
 const trees = [
-  { x: 38, trunkW: 16, trunkH: 42, foliageR: 36, trunkC: TREE_TRUNKS[0], foliageC: TREE_FOLIAGE[0] },
-  { x: 85, trunkW: 14, trunkH: 34, foliageR: 26, trunkC: TREE_TRUNKS[1], foliageC: TREE_FOLIAGE[1] },
-  { x: 120, trunkW: 12, trunkH: 27, foliageR: 19, trunkC: TREE_TRUNKS[2], foliageC: TREE_FOLIAGE[2] },
-  { x: 62, trunkW: 12, trunkH: 21, foliageR: 14, trunkC: TREE_TRUNKS[3], foliageC: TREE_FOLIAGE[3] },
-  { x: 110, trunkW: 9, trunkH: 16, foliageR: 8, trunkC: TREE_TRUNKS[0], foliageC: TREE_FOLIAGE[4] }
+  { x: 30, trunkW: 14, trunkH: 38, foliageR: 32, trunkC: "#8d5524", foliageC: "#a3c468" },
+  { x: 70, trunkW: 11, trunkH: 26, foliageR: 21, trunkC: "#8d5524", foliageC: "#b7d87b" },
+  { x: 110, trunkW: 10, trunkH: 19, foliageR: 13, trunkC: "#8d5524", foliageC: "#b7d87b" }
 ];
 
 // --- Sounds ---
@@ -429,10 +394,9 @@ layoutAnswerBlocks();
     if (onBox) {
       mario.y = box.y - mario.h; mario.vy = 0; mario.onGround = true;
     } else {
-      // --- FIX: Mario stands on pipe cap, not tube ---
+      // Pipe cap fix: Mario stands on the top surface of the pipe cap, not the tube
       let onPipe = false;
       for (const p of pipes) {
-        // Pipe cap (green) is drawn with a small overhang, and is 14px tall
         const capLeft = p.x - 4;
         const capRight = p.x + p.r * 2 + 4;
         const capTop = p.y - p.h - 14;
@@ -563,7 +527,7 @@ layoutAnswerBlocks();
   // Draw trees (left, behind box)
   for (const tree of trees) drawTree(tree);
 
-  // Draw fancier wooden box (Angry Birds style)
+  // Draw wooden box
   drawWoodenBox(box);
 
   // Draw right-side pipes
@@ -606,30 +570,10 @@ layoutAnswerBlocks();
   for (const g of goombas) {
     const bob = Math.sin(g.bob) * 2;
     const gx = g.x, gy = g.y + bob;
-    // Feet
-    ctx.fillStyle = GOOMBA_FEET;
-    ctx.beginPath();
-    ctx.ellipse(gx + g.w/2 - 5, gy + g.h, 5, 3, 0, 0, Math.PI*2);
-    ctx.ellipse(gx + g.w/2 + 5, gy + g.h, 5, 3, 0, 0, Math.PI*2);
-    ctx.fill();
-    // Main body
-    ctx.save();
-    ctx.shadowColor = "#C97A46";
-    ctx.shadowBlur = 7;
-    ctx.fillStyle = GOOMBA_BODY;
+    ctx.fillStyle = "#8d5524";
     ctx.beginPath();
     ctx.ellipse(gx + g.w/2, gy + g.h/2, g.w/2, g.h/2, 0, 0, Math.PI*2);
     ctx.fill();
-    ctx.restore();
-    // Outline
-    ctx.save();
-    ctx.strokeStyle = GOOMBA_OUTLINE;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.ellipse(gx + g.w/2, gy + g.h/2, g.w/2, g.h/2, 0, 0, Math.PI*2);
-    ctx.stroke();
-    ctx.restore();
-    // Eyes
     ctx.fillStyle = "#fff";
     ctx.beginPath();
     ctx.arc(gx + g.w/2 - 4, gy + g.h/2 - 6, 2.5, 0, Math.PI*2);
@@ -688,34 +632,37 @@ function roundRect(ctx, x, y, w, h, r, fill, stroke) {
 }
 function drawWoodenBox(box) {
   ctx.save();
-  ctx.fillStyle = BOX_MAIN;
-  ctx.strokeStyle = BOX_EDGE;
+  ctx.fillStyle = "#b97a56";
+  ctx.strokeStyle = "#7c4f26";
   ctx.lineWidth = 4;
-  ctx.shadowColor = "#8a6c41";
+  ctx.shadowColor = "#65432155";
   ctx.shadowBlur = 8;
   ctx.fillRect(box.x, box.y, box.w, box.h);
   ctx.strokeRect(box.x, box.y, box.w, box.h);
+  // Planks (vertical)
   ctx.lineWidth = 2;
   for (let i = 1; i < 4; i++) {
     let px = box.x + (box.w / 4) * i;
     ctx.beginPath();
     ctx.moveTo(px, box.y + 4);
     ctx.lineTo(px, box.y + box.h - 4);
-    ctx.strokeStyle = BOX_HL;
+    ctx.strokeStyle = "#e2b07a";
     ctx.stroke();
   }
-  ctx.strokeStyle = BOX_HL;
+  // Plank highlights (top/bottom lines)
+  ctx.strokeStyle = "#e2b07a";
   ctx.beginPath();
   ctx.moveTo(box.x + 3, box.y + 8);
   ctx.lineTo(box.x + box.w - 3, box.y + 8);
   ctx.moveTo(box.x + 3, box.y + box.h - 8);
   ctx.lineTo(box.x + box.w - 3, box.y + box.h - 8);
   ctx.stroke();
+  // Nails (dots)
   for (let i = 0; i < 4; i++) {
     ctx.beginPath();
     ctx.arc(box.x + (box.w / 4) * i + box.w / 8, box.y + 12, 2, 0, Math.PI*2);
     ctx.arc(box.x + (box.w / 4) * i + box.w / 8, box.y + box.h - 12, 2, 0, Math.PI*2);
-    ctx.fillStyle = BOX_NAIL;
+    ctx.fillStyle = "#775c3b";
     ctx.fill();
   }
   ctx.restore();
@@ -826,7 +773,7 @@ function drawQuestionPanel() {
   ctx.fillStyle = '#4a6b82'; ctx.font = '13px Arial';
   const hint = q && q.type === 'scale'
     ? "Jump up and strike a numbered box from below (or click a box)."
-    : "Move to the center to type your response when prompted. You can rest Mario on the wooden box to avoid Goombas while thinking!";
+    : "Move to the center to type your response when prompted.";
   ctx.fillText(hint, px + 18, py + panelH - 12);
 }
 function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
