@@ -313,7 +313,8 @@ function showTextPrompt(qText, callback) {
 
 // ---------- GOOGLE FORM SUBMISSION ----------
 function sendResponsesToGoogleForm(answers) {
-  const googleFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfllOaHEoxhUpwB0MuqQuh7malLyl3bGuemvr5BflVq0JqL6Q/formResponse";
+  // const googleFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfllOaHEoxhUpwB0MuqQuh7malLyl3bGuemvr5BflVq0JqL6Q/formResponse";
+  const googleFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfllOaHEoxhUpwB0MuqQuh7malLyl3bGuemvr5BflVq0JqL6Q/viewform?usp=header"
   const data = {};
   for (let i = 0; i < answers.length; i++) {
     if (entryMapping[i]) data[entryMapping[i]] = answers[i];
