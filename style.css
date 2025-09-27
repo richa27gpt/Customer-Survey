@@ -184,25 +184,26 @@ canvas#gameCanvas{
 #promptSubmit:active { transform:translateY(1px); }
 
 /* =========================
-   Prettier Back Button (bottom left, bubble inside game box)
+   Prettier Back Button (bottom left, inside game area)
    ========================= */
 #backBtn {
   position: absolute;
-  left: 32px;     /* Place at the inner round corner of the box, just above ground */
-  bottom: 13px;   /* Floating above the green ground, visually centered */
+  left: 48px; /* Move to be inside the white game box, tweak for your layout */
+  bottom: 38px; /* Align to green ground & inside game box */
   z-index: 30;
-  padding: 7px 16px; /* Smaller bubble */
+  /* padding: 8px 18px; /* Smaller button */ */
+  padding: 6px 15px; /* Smaller button */
   background: #fcf6de;
   color: #226622;
   font-size: 1em;
   font-weight: 600;
-  border: 2.2px solid #e0c97f;
-  border-radius: 22px 28px 22px 38px / 28px 22px 28px 22px; /* whimsical bubble shape */
+  border: 2px solid #e0c97f;
+  border-radius: 18px;
   box-shadow: 2px 3px 14px rgba(30,136,229,0.08);
   cursor: pointer;
   transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
   outline: none;
-  opacity: 0.96;
+  opacity: 0.92;
 }
 #backBtn:hover, #backBtn:focus {
   background: #f8eecb;
