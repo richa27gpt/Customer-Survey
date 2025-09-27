@@ -7,46 +7,31 @@ const LOCAL_RESPONSES_KEY = 'survey_responses';
 
 // ---------- GOOGLE FORM ENTRY MAPPING (Update this if your form changes) ----------
 const entryMapping = [
-  "entry.50726676",
-  "entry.1323361503",
-  "entry.1795429248",
-  "entry.1353751027",
-  "entry.1307954471",
-  "entry.275686139",
-  "entry.1099492170",
-  "entry.1639527261",
-  "entry.132772456",
-  "entry.360369907",
-  "entry.681340901",
-  "entry.724685650",
-  "entry.828988626",
-  "entry.397835101",
-  "entry.557420901",
-  "entry.1176796185",
-  "entry.2047490232",
-  "entry.2132866625"
+  "entry.1274098668", // "Leadership" (section header, usually skip, but keep if you want to track section transitions)
+  "entry.1724442667", // How would you rate the overall vision and strategic direction provided by DDIE’s leadership?
+  "entry.146502797",  // To what extent do you feel DDIE’s leadership is aligned with your organization’s goals and priorities?
+  "entry.1540181907", // Over the past year, what specific improvements or changes in DDIE’s leadership have you noticed?
+  "entry.219406629",  // Looking forward, what do DDIE’s leadership need to improve to support you better?
+  "entry.891724498",  // "Account Management" (section header)
+  "entry.4555481",    // How satisfied are you with the responsiveness and engagement of your account manager?
+  "entry.567046895",  // Has your account manager changed this year? If Yes, to what extent...?
+  "entry.498095553",  // To what extent do you feel your account manager is aligned with your organization’s goals and priorities?
+  "entry.1238333287", // What additional steps could your account manager take...?
+  "entry.1644361199", // "Service Delivery" (section header)
+  "entry.1098735143", // How would you rate the overall quality of service delivery...?
+  "entry.333588296",  // How satisfied are you with DDIE’s response times to your requests or issues?
+  "entry.122617014",  // How do you rate DDIE’s overall technical competency...?
+  "entry.1111852999", // What improvements, if any, have you noticed in DDIE’s service delivery...?
+  "entry.795879044",  // How can DDIE further improve future service delivery?
+  "entry.26746663",   // "Credibility" (section header)
+  "entry.702624036",  // How would you rate DDIE’s credibility as a trusted partner?
+  "entry.109116447",  // How engaged do you feel DDIE is in supporting your business goals and priorities?
+  "entry.731035627",  // What additional steps could DDIE take to improve their credibility...?
+  "entry.1980509451", // "General" (section header)
+  "entry.1222441451", // What do you think DDIE is doing well?
+  "entry.2000623643", // What areas do you think DDIE could improve?
 ];
-// const entryMapping = [
-//   "entry.50726676",           // UNKNOWN_QUESTION (likely intro/page break/section)
-//   "entry.1323361503",         // UNKNOWN_QUESTION (likely intro/page break/section)
-//   "entry.1795429248_sentinel",// Q: How would you rate the overall vision...
-//   "entry.1353751027_sentinel",// Q: To what extent do you feel DDIE’s leadership...
-//   "entry.1307954471",         // UNKNOWN_QUESTION (likely section)
-//   "entry.275686139_sentinel", // Q: How satisfied are you with account manager?
-//   "entry.1099492170_sentinel",// Q: Has your account manager changed this year?
-//   "entry.1639527261_sentinel",// Q: To what extent do you feel your account manager...
-//   "entry.132772456",          // UNKNOWN_QUESTION
-//   "entry.360369907",          // UNKNOWN_QUESTION
-//   "entry.681340901_sentinel", // Q: How would you rate the overall quality...
-//   "entry.724685650_sentinel", // Q: How satisfied with DDIE’s response times...
-//   "entry.828988626_sentinel", // Q: How do you rate DDIE’s overall technical competency...
-//   "entry.397835101",          // UNKNOWN_QUESTION
-//   "entry.557420901_sentinel", // Q: How would you rate DDIE’s credibility...
-//   "entry.1176796185_sentinel",// Q: How engaged do you feel DDIE is...
-//   "entry.2047490232",         // UNKNOWN_QUESTION
-//   "entry.2132866625"          // UNKNOWN_QUESTION
-// ];
-
+  
 // ---------- QUESTIONS ----------
 const questions = [
   { section: "Leadership", text: "How would you rate the overall vision and strategic direction provided by DDIE’s leadership?", type: "scale", scale: 5 },
