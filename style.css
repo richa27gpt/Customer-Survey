@@ -215,10 +215,3 @@ canvas#gameCanvas{
   from{ opacity:0; transform:translateY(12px); }
   to{   opacity:1; transform:translateY(0); }
 }
-
-/* =========================
-   Admin page (unchanged)
-   ========================= */
-.admin-wrap{ max-width:980px; margin:18px auto; padding:18px; background:#fff; border-radius:10px; border:1px solid #e3f2fd }
-.admin-actions{ display:flex; gap:8px; align-items:center }
-.admin-stats{ display:flex; flex-direction:column; gap:12px; margin-top:12px }
