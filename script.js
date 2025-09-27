@@ -1,4 +1,4 @@
-// script.js - v6: Angry Birds-style wooden box, more/faster clouds, box moved toward center, pipes right, trees on left, FIX Mario sits on top of pipe cap
+// script.js - v7: Back button now appears on prompt-based questions if previous was box-based (except end screen)
 
 // ---------- Configuration ----------
 const SINGLE_SUBMIT = false;
@@ -51,6 +51,7 @@ const promptTitle = document.getElementById('promptTitle');
 const promptInput = document.getElementById('promptInput');
 const promptSubmit = document.getElementById('promptSubmit');
 const endScreen = document.getElementById('endScreen');
+const backBtn = document.getElementById('backBtn'); // <-- get back button
 
 // ---------- Game entities ----------
 const gravity = 0.38;
@@ -63,7 +64,7 @@ const mario = {
 
 // Wooden box for Mario to rest (fancy, Angry Birds style, center-left)
 const box = {
-  x: 160, // moved more toward the center, tweak as needed
+  x: 160,
   y: H - 28 - 48,
   w: 62,
   h: 48
@@ -146,6 +147,7 @@ let surveyDone = false;
 let showingPrompt = false;
 let lastSelectionTime = 0;
 let lastScaleQuestion = -1;
+let lastScaleQuestionType = null; // <-- store type of last box-based question
 let endCelebrationRunning = false;
 let endJumpTimer = 0;
 let endSpawnInterval = null;
@@ -219,8 +221,9 @@ function strikeBlock(index) {
 }
 function selectScale(val) {
   answers.push(val);
-  lastScaleQuestion = currentQ;
-  document.getElementById('backBtn').style.display = "inline-block";
+  lastScaleQuestion = currentQ; // <-- store last question index
+  lastScaleQuestionType = questions[currentQ].type; // <-- store last question type
+  backBtn.style.display = "inline-block"; // Always show after scale answer
   advanceQuestion();
 }
 function goBackOneQuestion() {
@@ -230,7 +233,15 @@ function goBackOneQuestion() {
     layoutAnswerBlocks();
     mario.x = W/2 - mario.w/2;
     mario.y = H - 28 - mario.h;
-    document.getElementById('backBtn').style.display = "none";
+
+    // Show/hide backBtn based on previous question type
+    if (questions[currentQ].type === "scale") {
+      backBtn.style.display = "inline-block";
+    } else if (currentQ > 0 && questions[currentQ-1] && questions[currentQ-1].type === "scale") {
+      backBtn.style.display = "inline-block";
+    } else {
+      backBtn.style.display = "none";
+    }
     lastScaleQuestion = -1;
   }
 }
@@ -238,9 +249,21 @@ function advanceQuestion() {
   currentQ++;
   mario.x = clamp(mario.x, 48, W - 72);
   mario.vy = 0; mario.onGround = true;
-  if (currentQ >= questions.length) finishSurvey();
-  else {
+
+  // Show/hide backBtn for new question
+  if (currentQ >= questions.length) {
+    backBtn.style.display = "none";
+    finishSurvey();
+  } else {
     layoutAnswerBlocks();
+    // Show on scale, or if previous was scale
+    if (questions[currentQ].type === "scale") {
+      backBtn.style.display = "inline-block";
+    } else if (currentQ > 0 && questions[currentQ-1] && questions[currentQ-1].type === "scale") {
+      backBtn.style.display = "inline-block";
+    } else {
+      backBtn.style.display = "none";
+    }
   }
 }
 function showTextPrompt(qText, callback) {
@@ -262,7 +285,13 @@ function showTextPrompt(qText, callback) {
   function onEnter(e) { if (e.key === 'Enter') handler(); }
   promptSubmit.addEventListener('click', handler);
   window.addEventListener('keypress', onEnter);
-  document.getElementById('backBtn').style.display = "none";
+
+  // Show backBtn for prompt if previous was box-based, and not end screen
+  if (currentQ > 0 && questions[currentQ-1] && questions[currentQ-1].type === "scale" && !surveyDone) {
+    backBtn.style.display = "inline-block";
+  } else {
+    backBtn.style.display = "none";
+  }
 }
 
 // ---------- Server submission ----------
@@ -297,6 +326,7 @@ function storeLocalBackup(payload) {
 // ---------- Finish: end screen + celebration ----------
 function finishSurvey() {
   surveyDone = true;
+  backBtn.style.display = "none"; // Hide backBtn on end screen
   if (SINGLE_SUBMIT) {
     try { localStorage.setItem(LOCAL_KEY, '1'); } catch (e) { }
   }
@@ -333,7 +363,7 @@ function finishSurvey() {
     endScreen.classList.remove('hidden');
     startEndCelebration();
   });
-  document.getElementById('backBtn').style.display = "none";
+  backBtn.style.display = "none"; // Hide backBtn on end screen
 }
 function startEndCelebration() {
   if (endCelebrationRunning) return;
@@ -414,10 +444,10 @@ layoutAnswerBlocks();
     } else {
       let onPipe = false;
       for (const p of pipes) {
-        // --- FIX: Mario sits on pipe cap, not pipe body ---
-        const pipeTop = p.y - p.h - 14;      // The cap is 14px tall, sits on top of pipe
-        const pipeLeft = p.x - 4;            // Cap is wider than pipe body (extends 4px left)
-        const pipeRight = p.x + p.r*2 + 4;   // Cap is wider than pipe body (extends 4px right)
+        // --- sit on top of pipe cap, not pipe body ---
+        const pipeTop = p.y - p.h - 14;
+        const pipeLeft = p.x - 4;
+        const pipeRight = p.x + p.r*2 + 4;
         if (
           mario.x + mario.w > pipeLeft &&
           mario.x < pipeRight &&
@@ -798,6 +828,6 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   }
   ctx.fillText(line, x, y);
 }
-document.getElementById('backBtn').addEventListener('click', goBackOneQuestion);
+backBtn.addEventListener('click', goBackOneQuestion);
 const originalAdvance = advanceQuestion;
 advanceQuestion = function () { originalAdvance(); layoutAnswerBlocks(); };
