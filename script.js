@@ -1,4 +1,4 @@
-// script.js - v5: Angry Birds-style wooden box, more/faster clouds, box moved toward center, pipes right, trees on the left
+// script.js - v6: Improved color scheme for trees, wooden box, and goombas. Trees on left, fancier wood, vibrant goombas, more/faster clouds, pipes only on right
 
 // ---------- Configuration ----------
 const SINGLE_SUBMIT = false;
@@ -43,7 +43,7 @@ const startBtn = document.getElementById("startBtn");
 // ---- INSTRUCTIONS UPDATE
 const instructionsBox = document.getElementById("instructions");
 if (instructionsBox) {
-  instructionsBox.innerHTML += "<br>- <b>Tip:</b> Mario can rest on the <span style='color: #b97a56'>wooden box</span> (center-left, looks like Angry Birds wood) to avoid Goombas while you read/think!<br>- Enjoy the trees on the left!";
+  instructionsBox.innerHTML += "<br>- <b>Tip:</b> Mario can rest on the <span style='color: #e8b26a'>wooden box</span> (center-left, looks like Angry Birds wood) to avoid Goombas while you read/think!<br>- Enjoy the trees on the left!";
 }
 
 startBtn.addEventListener("click", () => {
@@ -67,27 +67,38 @@ const mario = {
   stars: []
 };
 
+// --- Color Palette ---
+const TREE_TRUNKS   = ["#A0522D", "#B8860B", "#7B5E57", "#AD6B2B"];
+const TREE_FOLIAGE  = ["#7ED957", "#44B09E", "#A9DFBF", "#229954", "#B2FF66", "#6FEAA9"];
+const BOX_MAIN      = "#E8B26A";
+const BOX_EDGE      = "#C97A46";
+const BOX_HL        = "#FFD580";
+const BOX_NAIL      = "#BFC9CA";
+const GOOMBA_BODY   = "#B05E1E";
+const GOOMBA_FEET   = "#F5CBA7";
+const GOOMBA_OUTLINE= "#7B3F00";
+
 // Wooden box for Mario to rest (fancy, Angry Birds style, center-left)
 const box = {
-  x: 160, // moved more toward the center, tweak as needed
+  x: 160,
   y: H - 28 - 48,
   w: 62,
   h: 48
 };
 
-// Goombas (with random movement)
+// Goombas (classic Mario style)
 const goombas = [
-  { x: 390, y: H - 28 - 20, w: 22, h: 20, dir: 1, spd: 1.06, bob: 0, lastChange: 0 },
-  { x: 670, y: H - 28 - 20, w: 22, h: 20, dir: -1, spd: 0.96, bob: 0, lastChange: 0 }
+  { x: 390, y: H - 28 - 24, w: 22, h: 24, dir: 1, spd: 1.06, bob: 0, lastChange: 0 },
+  { x: 670, y: H - 28 - 24, w: 22, h: 24, dir: -1, spd: 0.96, bob: 0, lastChange: 0 }
 ];
 
 // --- Trees setup (cartoon, left of screen and box) ---
 const trees = [
-  { x: 38, trunkW: 16, trunkH: 42, foliageR: 36, c: "#88b04b" },
-  { x: 85, trunkW: 14, trunkH: 34, foliageR: 26, c: "#77a042" },
-  { x: 120, trunkW: 12, trunkH: 27, foliageR: 19, c: "#a5cc6b" },
-  { x: 62, trunkW: 12, trunkH: 21, foliageR: 14, c: "#b2e067" },
-  { x: 110, trunkW: 9, trunkH: 16, foliageR: 8, c: "#d7f6b5" }
+  { x: 38, trunkW: 16, trunkH: 42, foliageR: 36, trunkC: TREE_TRUNKS[0], foliageC: TREE_FOLIAGE[0] },
+  { x: 85, trunkW: 14, trunkH: 34, foliageR: 26, trunkC: TREE_TRUNKS[1], foliageC: TREE_FOLIAGE[1] },
+  { x: 120, trunkW: 12, trunkH: 27, foliageR: 19, trunkC: TREE_TRUNKS[2], foliageC: TREE_FOLIAGE[2] },
+  { x: 62, trunkW: 12, trunkH: 21, foliageR: 14, trunkC: TREE_TRUNKS[3], foliageC: TREE_FOLIAGE[3] },
+  { x: 110, trunkW: 9, trunkH: 16, foliageR: 8, trunkC: TREE_TRUNKS[0], foliageC: TREE_FOLIAGE[4] }
 ];
 
 // --- Sounds ---
@@ -541,7 +552,7 @@ layoutAnswerBlocks();
   drawCloud(90, 64, 0.9); drawCloud(260, 48, 0.6); drawCloud(720, 84, 0.8);
   ctx.fillStyle = '#3fa34a'; ctx.fillRect(0, H - 28, W, 28);
 
-  // Draw trees (left side, behind box)
+  // Draw trees (left, behind box)
   for (const tree of trees) drawTree(tree);
 
   // Draw fancier wooden box (Angry Birds style)
@@ -587,10 +598,30 @@ layoutAnswerBlocks();
   for (const g of goombas) {
     const bob = Math.sin(g.bob) * 2;
     const gx = g.x, gy = g.y + bob;
-    ctx.fillStyle = "#8d5524";
+    // Feet
+    ctx.fillStyle = GOOMBA_FEET;
+    ctx.beginPath();
+    ctx.ellipse(gx + g.w/2 - 5, gy + g.h, 5, 3, 0, 0, Math.PI*2);
+    ctx.ellipse(gx + g.w/2 + 5, gy + g.h, 5, 3, 0, 0, Math.PI*2);
+    ctx.fill();
+    // Main body
+    ctx.save();
+    ctx.shadowColor = "#C97A46";
+    ctx.shadowBlur = 7;
+    ctx.fillStyle = GOOMBA_BODY;
     ctx.beginPath();
     ctx.ellipse(gx + g.w/2, gy + g.h/2, g.w/2, g.h/2, 0, 0, Math.PI*2);
     ctx.fill();
+    ctx.restore();
+    // Outline
+    ctx.save();
+    ctx.strokeStyle = GOOMBA_OUTLINE;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(gx + g.w/2, gy + g.h/2, g.w/2, g.h/2, 0, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.restore();
+    // Eyes
     ctx.fillStyle = "#fff";
     ctx.beginPath();
     ctx.arc(gx + g.w/2 - 4, gy + g.h/2 - 6, 2.5, 0, Math.PI*2);
@@ -647,13 +678,12 @@ function roundRect(ctx, x, y, w, h, r, fill, stroke) {
   if (fill) ctx.fill();
   if (stroke) ctx.stroke();
 }
-// --- Fancy wooden box (Angry Birds style) ---
 function drawWoodenBox(box) {
   ctx.save();
-  ctx.fillStyle = "#b97a56";
-  ctx.strokeStyle = "#7c4f26";
+  ctx.fillStyle = BOX_MAIN;
+  ctx.strokeStyle = BOX_EDGE;
   ctx.lineWidth = 4;
-  ctx.shadowColor = "#65432155";
+  ctx.shadowColor = "#8a6c41";
   ctx.shadowBlur = 8;
   ctx.fillRect(box.x, box.y, box.w, box.h);
   ctx.strokeRect(box.x, box.y, box.w, box.h);
@@ -663,10 +693,10 @@ function drawWoodenBox(box) {
     ctx.beginPath();
     ctx.moveTo(px, box.y + 4);
     ctx.lineTo(px, box.y + box.h - 4);
-    ctx.strokeStyle = "#e2b07a";
+    ctx.strokeStyle = BOX_HL;
     ctx.stroke();
   }
-  ctx.strokeStyle = "#e2b07a";
+  ctx.strokeStyle = BOX_HL;
   ctx.beginPath();
   ctx.moveTo(box.x + 3, box.y + 8);
   ctx.lineTo(box.x + box.w - 3, box.y + 8);
@@ -677,18 +707,18 @@ function drawWoodenBox(box) {
     ctx.beginPath();
     ctx.arc(box.x + (box.w / 4) * i + box.w / 8, box.y + 12, 2, 0, Math.PI*2);
     ctx.arc(box.x + (box.w / 4) * i + box.w / 8, box.y + box.h - 12, 2, 0, Math.PI*2);
-    ctx.fillStyle = "#775c3b";
+    ctx.fillStyle = BOX_NAIL;
     ctx.fill();
   }
   ctx.restore();
 }
 function drawTree(tree) {
   ctx.save();
-  ctx.fillStyle = "#8d5524";
+  ctx.fillStyle = tree.trunkC;
   ctx.fillRect(tree.x, H - 28 - tree.trunkH, tree.trunkW, tree.trunkH);
   ctx.beginPath();
   ctx.arc(tree.x + tree.trunkW/2, H - 28 - tree.trunkH, tree.foliageR, Math.PI*1.05, Math.PI*2.05, false);
-  ctx.fillStyle = tree.c;
+  ctx.fillStyle = tree.foliageC;
   ctx.shadowColor = "#4b7429";
   ctx.shadowBlur = 18;
   ctx.fill();
