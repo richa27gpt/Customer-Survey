@@ -5,6 +5,22 @@
   <title>Survey Jump — Gameified Customer Survey</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* You can move this to style.css */
+    .tip-line {
+      margin-top: 10px;
+      margin-left: -28px; /* Moves tip further left than bullets */
+      color: #669933;
+      font-style: italic;
+      font-size: 1.09em;
+      font-family: inherit;
+      font-weight: 400;
+      line-height: 1.4;
+    }
+    @media (max-width: 700px) {
+      .tip-line { margin-left: -10px; }
+    }
+  </style>
 </head>
 <body>
   <!-- Instructions Popup -->
@@ -17,25 +33,13 @@
         <li>Hit the yellow blocks to answer</li>
         <li>Avoid 👾goombas – getting hit makes Mario dizzy!</li>
         <li>If you choose the wrong block, use the <b>Back Button</b> to retry</li>
-        <li style="color:#226622;"><em><b>Tip:</b> Move Mario onto the top of wooden box (left side) or pipes to rest and avoid Goombas while you think!</em></li>
       </ul>
+      <div class="tip-line">
+        Tip: Move Mario onto the top of wooden box (left side) or pipes to rest and avoid Goombas while you think!
+      </div>
       <button id="startBtn">🎮 I’m Ready!</button>
     </div>
   </div>
-  
-  <!-- <div id="overlay">
-    <div class="overlay-box">
-      <h1 class="overlay-title">🎮 Welcome, Player!</h1>
-      <p class="overlay-text">
-        <span class="emoji">⬅️ ➡️</span> Move with <b>Arrow keys</b> (or <b>A / D</b>)<br>
-        <span class="emoji">⬆️</span> Jump with <b>Up Arrow / W</b><br>
-        <span class="emoji">💥</span> Hit the <b>yellow blocks</b> to answer questions<br>
-        <span class="emoji">👾</span> Avoid the <b>goombas</b> to survive!<br>
-        <span class="emoji">⬅️</span> Use <b>Back Button on screen</b> to re-hit the box if you hit wrong coin-box!
-      </p>
-      <button id="startBtn">✨ I’m Ready! ✨</button>
-    </div>
-  </div> -->
 
   <canvas id="gameCanvas" width="960" height="480" aria-label="Survey game canvas"></canvas>
   
@@ -52,15 +56,6 @@
   <button id="soundToggle" title="Toggle sound">🔊</button>
   <!-- Back Button -->
   <button id="backBtn" title="Undo last answer" style="display:none">⏪ Back</button>
-
-  <!-- Open-ended modal (DOM for text responses) -->
-  <!-- <div id="openPrompt" class="hidden" role="dialog" aria-modal="true">
-    <div id="promptTitle" class="prompt-title"></div>
-    <input id="promptInput" type="text" placeholder="Type your answer..." />
-    <div class="prompt-actions">
-      <button id="promptSubmit">Submit</button>
-    </div>
-  </div> -->
 
   <!-- End screen: minimal, no export, no replay -->
   <div id="endScreen" class="hidden" role="dialog" aria-live="polite">
