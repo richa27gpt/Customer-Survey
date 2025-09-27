@@ -26,7 +26,7 @@ const entryMapping = [
   "entry.1222441451", // What do you think DDIE is doing well?
   "entry.2000623643", // What areas do you think DDIE could improve?
 ];
-  
+
 // ---------- QUESTIONS ----------
 const questions = [
   { section: "Leadership", text: "How would you rate the overall vision and strategic direction provided by DDIE’s leadership?", type: "scale", scale: 5 },
@@ -256,7 +256,7 @@ function strikeBlock(index) {
   setTimeout(() => { selectScale(b.val); }, 380);
 }
 function selectScale(val) {
-  answers.push(val);
+  answers.push(val.toString()); // FIX: always push as string!
   advanceQuestion();
 }
 function goBackOneQuestion() {
@@ -313,7 +313,9 @@ function showTextPrompt(qText, callback) {
 
 // ---------- GOOGLE FORM SUBMISSION ----------
 function sendResponsesToGoogleForm(answers) {
-  // const googleFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfllOaHEoxhUpwB0MuqQuh7malLyl3bGuemvr5BflVq0JqL6Q/formResponse";
+  // DEBUG: See what's being sent
+  console.log("Submitting to Google Form:", answers);
+
   const googleFormUrl = "https://docs.google.com/forms/u/0/d/e/1FAIpQLSfllOaHEoxhUpwB0MuqQuh7malLyl3bGuemvr5BflVq0JqL6Q/formResponse";
   const data = {};
   for (let i = 0; i < answers.length; i++) {
@@ -324,39 +326,10 @@ function sendResponsesToGoogleForm(answers) {
     .join("&");
   fetch(googleFormUrl, {
     method: "POST",
-    mode: "no-cors", // Google Forms does not provide CORS headers
+    mode: "no-cors",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: formBody
   });
-}
-
-// ---------- Server submission ----------
-async function submitAnonymizedResults(payload) {
-  try {
-    const resp = await fetch('/api/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (!resp.ok) {
-      console.warn('Submission failed', resp.status);
-      storeLocalBackup(payload);
-      return false;
-    }
-    return true;
-  } catch (e) {
-    console.warn('Submission error', e);
-    storeLocalBackup(payload);
-    return false;
-  }
-}
-function storeLocalBackup(payload) {
-  try {
-    const raw = localStorage.getItem(LOCAL_RESPONSES_KEY);
-    const arr = raw ? JSON.parse(raw) : [];
-    arr.push(payload);
-    localStorage.setItem(LOCAL_RESPONSES_KEY, JSON.stringify(arr));
-  } catch (e) { }
 }
 
 // ---------- Finish: end screen + celebration ----------
@@ -394,15 +367,6 @@ function finishSurvey() {
     soundBtn.style.cursor = "not-allowed";
     soundBtn.title = "Sound disabled after survey";
   }
-  // submitAnonymizedResults(payload).then(success => {
-  //   openPrompt.classList.add('hidden');
-  //   endScreen.classList.remove('hidden');
-  //   startEndCelebration();
-  // }).catch(() => {
-  //   openPrompt.classList.add('hidden');
-  //   endScreen.classList.remove('hidden');
-  //   startEndCelebration();
-  // });
   openPrompt.classList.add('hidden');
   endScreen.classList.remove('hidden');
   startEndCelebration();
@@ -565,7 +529,7 @@ updateBackButton();
       const centerLeft = W * 0.32, centerRight = W * 0.68;
       if (mario.onGround && (mario.x + mario.w / 2) >= centerLeft && (mario.x + mario.w / 2) <= centerRight && !showingPrompt) {
         if (!showingPrompt && !surveyDone && questions[currentQ] && questions[currentQ].type === 'text') {
-          showTextPrompt(questions[currentQ].text, (resp) => { answers.push(resp); advanceQuestion(); });
+          showTextPrompt(questions[currentQ].text, (resp) => { answers.push(resp.toString()); advanceQuestion(); });
         }
       }
     }
