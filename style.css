@@ -191,8 +191,8 @@ canvas#gameCanvas{
   left: 48px; /* Move to be inside the white game box, tweak for your layout */
   bottom: 38px; /* Align to green ground & inside game box */
   z-index: 30;
-  /* padding: 8px 18px; /* Smaller button */ */
-  padding: 7px 17px; /* Smaller button */
+  padding: 8px 18px; /* Smaller button */
+  /* padding: 7px 17px; /* Smaller button */
   background: #fcf6de;
   color: #226622;
   font-size: 1em;
