@@ -313,24 +313,38 @@ function showTextPrompt(qText, callback) {
 
 // ---------- GOOGLE FORM SUBMISSION ----------
 function sendResponsesToGoogleForm(answers) {
-  // DEBUG: See what's being sent
-  console.log("Submitting to Google Form:", answers);
-
-  const googleFormUrl = "https://docs.google.com/forms/u/0/d/e/1FAIpQLSfllOaHEoxhUpwB0MuqQuh7malLyl3bGuemvr5BflVq0JqL6Q/formResponse";
+  const scriptUrl = "https://script.google.com/macros/s/AKfycbzqIRqPH20G6H316aMIBYetbCyoITdGE6IiunWIFjzUpcjSi6AXXRRn542jBo8ZkfTh/exec"; //Apps Script Web App URL
+  // Map answers to q1...q18
   const data = {};
   for (let i = 0; i < answers.length; i++) {
-    if (entryMapping[i]) data[entryMapping[i]] = answers[i];
+    data["q" + (i+1)] = answers[i];
   }
-  const formBody = Object.entries(data)
-    .map(([k, v]) => encodeURIComponent(k) + "=" + encodeURIComponent(v))
-    .join("&");
-  fetch(googleFormUrl, {
+  fetch(scriptUrl, {
     method: "POST",
     mode: "no-cors",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: formBody
+    body: Object.entries(data).map(([k, v]) => encodeURIComponent(k) + "=" + encodeURIComponent(v)).join("&")
   });
 }
+// function sendResponsesToGoogleForm(answers) {
+//   // DEBUG: See what's being sent
+//   console.log("Submitting to Google Form:", answers);
+
+//   const googleFormUrl = "https://docs.google.com/forms/u/0/d/e/1FAIpQLSfllOaHEoxhUpwB0MuqQuh7malLyl3bGuemvr5BflVq0JqL6Q/formResponse";
+//   const data = {};
+//   for (let i = 0; i < answers.length; i++) {
+//     if (entryMapping[i]) data[entryMapping[i]] = answers[i];
+//   }
+//   const formBody = Object.entries(data)
+//     .map(([k, v]) => encodeURIComponent(k) + "=" + encodeURIComponent(v))
+//     .join("&");
+//   fetch(googleFormUrl, {
+//     method: "POST",
+//     mode: "no-cors",
+//     headers: { "Content-Type": "application/x-www-form-urlencoded" },
+//     body: formBody
+//   });
+// }
 
 // ---------- Finish: end screen + celebration ----------
 function finishSurvey() {
