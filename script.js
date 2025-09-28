@@ -521,28 +521,65 @@ updateBackButton();
       }
     }
   }
-
-  // End-screen behavior: excited Mario jumps repeatedly
+  
   // End-screen behavior: super-excited Mario jumps & wiggles
+  // End-screen behavior: ecstatic Mario jumps, wiggles & bursts with happiness
   if (surveyDone && endCelebrationRunning) {
     endJumpTimer++;
   
-    // Jump more often (every ~20 frames instead of 28) and higher
-    if (endJumpTimer % 20 === 0 && mario.onGround) {
-      mario.vy = -8; // stronger jump
+    // Jump more often and much higher
+    if (endJumpTimer % 18 === 0 && mario.onGround) {
+      mario.vy = -9; // big excited jump
       mario.onGround = false;
-    }
   
-    // Make Mario wiggle side-to-side faster
-    mario.x += Math.sin(endJumpTimer * 0.2) * 1.5;
+      // 🎉 Burst of happiness particles
+      for (let i = 0; i < 10; i++) {
+        particles.push({
+          x: mario.x + mario.w / 2,
+          y: mario.y,
+          vx: (Math.random() - 0.5) * 4,
+          vy: -Math.random() * 3 - 2,
+          life: 40 + Math.random() * 20,
+          color: ["#FFD700", "#FF69B4", "#00CED1", "#ADFF2F"][Math.floor(Math.random() * 4)], // gold, pink, teal, lime
+          size: 3 + Math.random() * 3
+        });
+      }
+    }
+
+    // Hyper wiggle side-to-side
+    mario.x += Math.sin(endJumpTimer * 0.35) * 2.2;
     mario.x = clamp(mario.x, 10, W - mario.w - 10);
   
-    // Add slight tilt/rotation effect for excitement
-    mario.rotation = Math.sin(endJumpTimer * 0.3) * 0.2; // radians
+    // Add rotation & squash-stretch for extra excitement
+    mario.rotation = Math.sin(endJumpTimer * 0.5) * 0.35;
+    mario.scaleY = 1 + Math.sin(endJumpTimer * 0.5) * 0.15; // squash/stretch effect
   
-    // Speed up his running animation to look more energetic
-    mario.animSpeed = 1.8; 
+    // Animate super fast to look ecstatic
+    mario.animSpeed = 2.2;
   }
+  ///////////////////////////////////
+  //V-2
+  // if (surveyDone && endCelebrationRunning) {
+  //   endJumpTimer++;
+  
+  //   // Jump more often (every ~20 frames instead of 28) and higher
+  //   if (endJumpTimer % 20 === 0 && mario.onGround) {
+  //     mario.vy = -8; // stronger jump
+  //     mario.onGround = false;
+  //   }
+  
+  //   // Make Mario wiggle side-to-side faster
+  //   mario.x += Math.sin(endJumpTimer * 0.2) * 1.5;
+  //   mario.x = clamp(mario.x, 10, W - mario.w - 10);
+  
+  //   // Add slight tilt/rotation effect for excitement
+  //   mario.rotation = Math.sin(endJumpTimer * 0.3) * 0.2; // radians
+  
+  //   // Speed up his running animation to look more energetic
+  //   mario.animSpeed = 1.8; 
+  // }
+  //////////////////////////////////////////////
+  // V-1
   // if (surveyDone && endCelebrationRunning) {
   //   endJumpTimer++;
   //   if (endJumpTimer % 28 === 0 && mario.onGround) {
