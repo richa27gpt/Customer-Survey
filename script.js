@@ -56,7 +56,7 @@ const backBtn = document.getElementById('backBtn'); // <-- get back button
 // ---------- Game entities ----------
 const gravity = 0.38;
 const mario = {
-  x: 160, y: H - 28 - 36, w: 34, h: 36, vy: 0, onGround: true, speed: 2.4, color: '#e84c3d',
+  x: 160, y: H - 28 - 36, w: 34, h: 36, vy: 0, onGround: true, speed: 3, color: '#e84c3d',
   bob: 0,
   shocked: false,
   stars: []
