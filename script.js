@@ -1,7 +1,7 @@
-// script.js - v8: Back button always appears when previous was box-based (except end screen), logic centralized
+// script.js - updates: improved end bouncing, balloons spread/colors, smiling Mario, eye movement on jump, admin link removed from end screen
 
 // ---------- Configuration ----------
-const SINGLE_SUBMIT = false;
+const SINGLE_SUBMIT = false; // set to true to re-enable "only once per browser" (uses localStorage)
 const LOCAL_KEY = 'survey_completed_v1';
 const LOCAL_RESPONSES_KEY = 'survey_responses';
 
@@ -42,8 +42,8 @@ const startBtn = document.getElementById("startBtn");
 
 startBtn.addEventListener("click", () => {
   overlay.style.display = "none";
-  canvas.focus();
-  gameStarted = true;
+  canvas.focus();  // immediately give control to game
+  gameStarted = true;   // ✅ start game only now
 });
 
 const openPrompt = document.getElementById('openPrompt');
@@ -51,38 +51,20 @@ const promptTitle = document.getElementById('promptTitle');
 const promptInput = document.getElementById('promptInput');
 const promptSubmit = document.getElementById('promptSubmit');
 const endScreen = document.getElementById('endScreen');
-const backBtn = document.getElementById('backBtn'); // <-- get back button
 
 // ---------- Game entities ----------
 const gravity = 0.38;
 const mario = {
-  x: 160, y: H - 28 - 36, w: 34, h: 36, vy: 0, onGround: true, speed: 2.4, color: '#e84c3d',
-  bob: 0,
+  x: 80, y: H - 28 - 36, w: 34, h: 36, vy: 0, onGround: true, speed: 2.4, color: '#e84c3d',
+  bob: 0
+,
   shocked: false,
   stars: []
 };
-
-// Wooden box for Mario to rest (fancy, Angry Birds style, center-left)
-const box = {
-  x: 160,
-  y: H - 28 - 48,
-  w: 62,
-  h: 48
-};
-
-// Goombas (with random movement)
+// goombas (now with random movement!)
 const goombas = [
   { x: 390, y: H - 28 - 20, w: 22, h: 20, dir: 1, spd: 1.06, bob: 0, lastChange: 0 },
   { x: 670, y: H - 28 - 20, w: 22, h: 20, dir: -1, spd: 0.96, bob: 0, lastChange: 0 }
-];
-
-// --- Trees setup (cartoon, left of screen and box) ---
-const trees = [
-  { x: 38, trunkW: 16, trunkH: 42, foliageR: 36, c: "#88b04b" },
-  { x: 85, trunkW: 14, trunkH: 34, foliageR: 26, c: "#77a042" },
-  { x: 120, trunkW: 12, trunkH: 27, foliageR: 19, c: "#a5cc6b" },
-  { x: 62, trunkW: 12, trunkH: 21, foliageR: 14, c: "#b2e067" },
-  { x: 110, trunkW: 9, trunkH: 16, foliageR: 8, c: "#d7f6b5" }
 ];
 
 // --- Sounds ---
@@ -90,6 +72,8 @@ const jumpSound = new Audio('sounds/jump.mp3');
 const coinSound = new Audio('sounds/coin.mp3');
 const hitSound  = new Audio('sounds/hit.mp3');
 const winSound = new Audio('sounds/win.mp3');
+
+// Default volume
 jumpSound.volume = 0.5;
 coinSound.volume = 0.5;
 hitSound.volume  = 0.5;
@@ -102,30 +86,42 @@ soundToggleBtn.addEventListener("click", () => {
   soundEnabled = !soundEnabled;
   soundToggleBtn.textContent = soundEnabled ? "🔊" : "🔇";
 });
+// --- Sounds ---
 
-// --- Moving clouds (more quantity, faster speed) ---
+//// Function Declarations ////
+// --- Moving clouds (slow drift) ---
 let clouds = [];
 function initClouds(){
   clouds = [];
-  for(let i=0;i<16;i++){
-    clouds.push({
-      x: Math.random()*W,
-      y: 20 + Math.random() * (H * 0.3),
-      s: 0.5 + Math.random()*1.1,
-      speed: 0.08 + Math.random()*0.16,
-      t: Math.random()*Math.PI*2
-    });
+  for(let i=0;i<8;i++){
+    clouds.push({x: Math.random()*W, y: 30 + Math.random() * (H * 0.3), s: 0.6+Math.random()*0.9, speed: 0.03+Math.random()*0.08, t: Math.random()*Math.PI*2});
   }
 }
 initClouds();
 
-// --- Pipes (right-side, always 3, random height) ---
+// --- Pipes (random count each side) ---
 let pipes = [];
+
 function initPipes() {
   pipes = [];
-  for (let i = 0; i < 3; i++) {
+
+  // left side pipes (1–3)
+  const leftCount = 1 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < leftCount; i++) {
     pipes.push({
-      x: W - 80 - i * 60,
+      x: 40 + i * 60,            // stagger horizontally
+      y: H - 28,
+      h: 40 + Math.random() * 20, // reachable height
+      r: 22,
+      side: "left"
+    });
+  }
+  
+  // right side pipes (1–3)
+  const rightCount = 1 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < rightCount; i++) {
+    pipes.push({
+      x: W - 80 - i * 60,        // stagger inward
       y: H - 28,
       h: 40 + Math.random() * 20,
       r: 22,
@@ -133,42 +129,64 @@ function initPipes() {
     });
   }
 }
+
 initPipes();
 
-let answerBlocks = [];
+let answerBlocks = []; // suspended blocks
 const blockW = 48, blockH = 34, blockGap = 18, blockAbove = 108;
+
 let coinPops = [];
 let fireworks = [];
 let balloons = [];
+
+// Fix Goombas until game is begun
 let gameStarted = false;
+
 let currentQ = 0;
 let answers = [];
 let surveyDone = false;
 let showingPrompt = false;
 let lastSelectionTime = 0;
 
-// --- End-screen celebration variables ---
+// Back Button
+let lastScaleQuestion = -1;
+
+// end-screen celebration running flag & timers
 let endCelebrationRunning = false;
 let endJumpTimer = 0;
 let endSpawnInterval = null;
 
 // ---------- Input ----------
+// const keys = {};
+// window.addEventListener('keydown', (e) => { keys[e.key] = true; });
+// window.addEventListener('keyup', (e) => { keys[e.key] = false; });
+
+// ---------- Input (fixed) ----------
 const keys = Object.create(null);
 const BLOCKED = new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ']);
+
 function isTypingTarget(el) {
   return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
 }
+
 window.addEventListener('keydown', (e) => {
-  if (BLOCKED.has(e.key) && !isTypingTarget(e.target)) e.preventDefault();
+  if (BLOCKED.has(e.key) && !isTypingTarget(e.target)) e.preventDefault(); // stop page scroll only when not typing
   if (!isTypingTarget(e.target)) keys[e.key] = true;
 });
+
 window.addEventListener('keyup', (e) => {
   if (BLOCKED.has(e.key) && !isTypingTarget(e.target)) e.preventDefault();
   keys[e.key] = false;
 });
+
+// clear any “stuck key” if focus is lost (alt-tab, click outside, overlay, etc.)
 window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+
+// make the canvas focusable and refocus on click (doesn’t interfere with your existing mousedown handler)
 canvas.setAttribute('tabindex', '0');
 canvas.addEventListener('mousedown', () => canvas.focus());
+
+// Mouse click selection for blocks
 canvas.addEventListener('mousedown', (e) => {
   if (surveyDone || showingPrompt) return;
   const rect = canvas.getBoundingClientRect();
@@ -188,7 +206,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const now = () => new Date().getTime();
 function rectsCollide(a, b) { return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y; }
 
-// ---------- Layout answer blocks ----------
+// ---------- Layout answer blocks (reversed numbering, adds smileys) ----------
 function layoutAnswerBlocks() {
   const q = questions[currentQ];
   if (!q || q.type !== 'scale') { answerBlocks = []; return; }
@@ -197,24 +215,11 @@ function layoutAnswerBlocks() {
   const startX = Math.round(W / 2 - totalW / 2);
   const y = H - 28 - blockAbove - blockH;
   answerBlocks = [];
+  // reversed numbering left->right: highest -> lowest
   for (let i = 0; i < n; i++) {
-    const val = n - i;
+    const val = n - i; // reversed
     const smile = val >= Math.ceil(n * 0.8) ? '😄' : (val >= Math.ceil(n * 0.5) ? '🙂' : '😐');
     answerBlocks.push({ x: startX + i * (blockW + blockGap), y: y, w: blockW, h: blockH, val: val, struck: false, shake: 0, smile });
-  }
-}
-
-// ---------- Centralized Back Button Logic ----------
-function updateBackButton() {
-  if (surveyDone || currentQ === 0 || currentQ > questions.length - 1) {
-    backBtn.style.display = "none";
-    return;
-  }
-  // Show if previous question exists and was box-based (scale)
-  if (questions[currentQ - 1] && questions[currentQ - 1].type === "scale") {
-    backBtn.style.display = "inline-block";
-  } else {
-    backBtn.style.display = "none";
   }
 }
 
@@ -223,10 +228,12 @@ function strikeBlock(index) {
   const b = answerBlocks[index];
   if (!b || b.struck) return;
   b.struck = true;
+  // Play Sound
   if (soundEnabled) {
     coinSound.currentTime = 0;
     coinSound.play();
   }
+  //
   b.shake = 10;
   coinPops.push({ x: b.x + b.w / 2, y: b.y - 6, vy: -3.6, life: 0, alpha: 1 });
   if (now() - lastSelectionTime < 350) return;
@@ -235,41 +242,47 @@ function strikeBlock(index) {
 }
 function selectScale(val) {
   answers.push(val);
+  lastScaleQuestion = currentQ; // remember this question index for Back Button
+  document.getElementById('backBtn').style.display = "inline-block"; //Show/Hide Back Button logic
   advanceQuestion();
 }
+
+// Back Button
 function goBackOneQuestion() {
-  if (currentQ > 0) {
+  if (lastScaleQuestion >= 0 && currentQ > 0) {
+    // remove last answer
     answers.pop();
-    // Go back to previous question
-    currentQ -= 1;
-    layoutAnswerBlocks();
+    currentQ = lastScaleQuestion;  // step back
+    layoutAnswerBlocks();          // re-draw boxes
+
+    // Reset Mario position
     mario.x = W/2 - mario.w/2;
     mario.y = H - 28 - mario.h;
 
-    // If prompt is open, close it
-    if (!openPrompt.classList.contains('hidden')) {
-      openPrompt.classList.add('hidden');
-      showingPrompt = false;
-    }
-    updateBackButton();
+    // hide back button until next answer
+    document.getElementById('backBtn').style.display = "none";
+    lastScaleQuestion = -1;
   }
 }
+
 function advanceQuestion() {
   currentQ++;
+  // preserve mario.x (do not reset). keep inside bounds.
   mario.x = clamp(mario.x, 48, W - 72);
   mario.vy = 0; mario.onGround = true;
-
-  if (currentQ >= questions.length) {
-    finishSurvey();
-  } else {
+  if (currentQ >= questions.length) finishSurvey();
+  else {
     layoutAnswerBlocks();
-    updateBackButton();
   }
 }
+
+// ---------- Text prompt ----------
 function showTextPrompt(qText, callback) {
   showingPrompt = true;
   openPrompt.classList.remove('hidden');
+  // place the prompt box below the question panel
   openPrompt.style.top = (document.querySelector("canvas").offsetTop + 140) + "px";
+
   promptTitle.textContent = qText;
   promptInput.value = "";
   promptInput.focus();
@@ -285,11 +298,11 @@ function showTextPrompt(qText, callback) {
   function onEnter(e) { if (e.key === 'Enter') handler(); }
   promptSubmit.addEventListener('click', handler);
   window.addEventListener('keypress', onEnter);
-
-  updateBackButton();
+  
+  document.getElementById('backBtn').style.display = "none"; //Show/Hide logic for Back Button
 }
 
-// ---------- Server submission ----------
+// ---------- Server submission (anonymous) with local fallback ----------
 async function submitAnonymizedResults(payload) {
   try {
     const resp = await fetch('/api/submit', {
@@ -309,22 +322,23 @@ async function submitAnonymizedResults(payload) {
     return false;
   }
 }
+
 function storeLocalBackup(payload) {
   try {
     const raw = localStorage.getItem(LOCAL_RESPONSES_KEY);
     const arr = raw ? JSON.parse(raw) : [];
     arr.push(payload);
     localStorage.setItem(LOCAL_RESPONSES_KEY, JSON.stringify(arr));
-  } catch (e) { }
+  } catch (e) { /* ignore */ }
 }
 
-// ---------- Finish: end screen + celebration ----------
+// ---------- Finish: end screen + continuous celebration + mario excitement ----------
 function finishSurvey() {
   surveyDone = true;
-  backBtn.style.display = "none"; // Hide backBtn on end screen
   if (SINGLE_SUBMIT) {
-    try { localStorage.setItem(LOCAL_KEY, '1'); } catch (e) { }
+    try { localStorage.setItem(LOCAL_KEY, '1'); } catch (e) { /* ignore */ }
   }
+
   const payload = {
     timestamp: new Date().toISOString(),
     answers: answers.slice(),
@@ -334,21 +348,28 @@ function finishSurvey() {
       clientTime: new Date().toISOString()
     }
   };
+
+  // center Mario for celebration and ensure grounded
   mario.x = Math.round(W/2 - mario.w/2);
   mario.y = H - 28 - mario.h;
   mario.vy = 0;
   mario.onGround = true;
+
+  // Play victory sound
   if (soundEnabled) {
     winSound.currentTime = 0;
     winSound.play();
   }
+
+  // 👉 Disable sound toggle when survey ends
   const soundBtn = document.getElementById('soundToggle');
   if (soundBtn) {
-    soundBtn.disabled = true;
-    soundBtn.style.opacity = "0.5";
+    soundBtn.disabled = true;          // prevent clicks
+    soundBtn.style.opacity = "0.5";    // fade visually
     soundBtn.style.cursor = "not-allowed";
-    soundBtn.title = "Sound disabled after survey";
+    soundBtn.title = "Sound disabled after survey"; // update tooltip
   }
+  
   submitAnonymizedResults(payload).then(success => {
     openPrompt.classList.add('hidden');
     endScreen.classList.remove('hidden');
@@ -358,19 +379,25 @@ function finishSurvey() {
     endScreen.classList.remove('hidden');
     startEndCelebration();
   });
-  backBtn.style.display = "none"; // Hide backBtn on end screen
+  document.getElementById('backBtn').style.display = "none"; //Show/Hide logic for Back Button
 }
+
+// ---------- Continuous Celebration (keeps spawning) ----------
 function startEndCelebration() {
   if (endCelebrationRunning) return;
   endCelebrationRunning = true;
   spawnCelebration();
-  endSpawnInterval = setInterval(() => { spawnCelebration(2, 6); }, 1400);
+  endSpawnInterval = setInterval(() => {
+    spawnCelebration(2, 6);
+  }, 1400);
   endJumpTimer = 0;
 }
+
 function stopEndCelebration() {
   endCelebrationRunning = false;
   if (endSpawnInterval) { clearInterval(endSpawnInterval); endSpawnInterval = null; }
 }
+
 function spawnCelebration(balloonsCount = 8, fireworksCount = 10) {
   const colors = ['#ffd35c', '#64b5f6', '#ff8a65', '#aed581', '#e57373', '#ba68c8'];
   for (let i = 0; i < balloonsCount; i++) {
@@ -383,9 +410,9 @@ function spawnCelebration(balloonsCount = 8, fireworksCount = 10) {
       life: 0
     });
   }
-  for (let i = 0; i < fireworksCount; i++)
-    createFirework(80 + Math.random() * (W - 160), 80 + Math.random() * 140);
+  for (let i = 0; i < fireworksCount; i++) createFirework(80 + Math.random() * (W - 160), 80 + Math.random() * 140);
 }
+
 function createFirework(x, y) {
   const particles = [];
   const count = 16 + Math.round(Math.random() * 28);
@@ -405,7 +432,6 @@ function createFirework(x, y) {
 
 // ---------- Init & main loop ----------
 layoutAnswerBlocks();
-updateBackButton();
 
 (function mainLoop() {
   if (SINGLE_SUBMIT && localStorage.getItem(LOCAL_KEY) === '1' && !surveyDone) {
@@ -415,86 +441,26 @@ updateBackButton();
     startEndCelebration();
   }
 
+  // update
   if (!surveyDone && !showingPrompt) {
     const prevY = mario.y;
     if (keys['ArrowLeft'] || keys['a']) mario.x -= mario.speed;
     if (keys['ArrowRight'] || keys['d']) mario.x += mario.speed;
     if ((keys['ArrowUp'] || keys['w']) && mario.onGround) {
-      mario.vy = -7.6;
+      mario.vy = -7.6; 
       mario.onGround = false;
-      if (soundEnabled) { jumpSound.currentTime = 0; jumpSound.play(); }
+      // Play Sound
+      if (soundEnabled) {
+        jumpSound.currentTime = 0; // rewind if still playing
+        jumpSound.play();
+      }
+      //
     }
     mario.x = clamp(mario.x, 6, W - mario.w - 6);
-
-    // Gravity, platforms (box & pipes), ground
     mario.vy += gravity;
     mario.y += mario.vy;
-    const onBox = (
-      mario.x + mario.w > box.x &&
-      mario.x < box.x + box.w &&
-      Math.abs(mario.y + mario.h - box.y) < 6 &&
-      mario.vy >= 0
-    );
-    if (onBox) {
-      mario.y = box.y - mario.h; mario.vy = 0; mario.onGround = true;
-    } else {
-      let onPipe = false;
-      for (const p of pipes) {
-        // --- sit on top of pipe cap, not pipe body ---
-        const pipeTop = p.y - p.h - 14;
-        const pipeLeft = p.x - 4;
-        const pipeRight = p.x + p.r*2 + 4;
-        if (
-          mario.x + mario.w > pipeLeft &&
-          mario.x < pipeRight &&
-          Math.abs(mario.y + mario.h - pipeTop) < 8 &&
-          mario.vy >= 0
-        ) {
-          mario.y = pipeTop - mario.h; mario.vy = 0; mario.onGround = true; onPipe = true;
-          break;
-        }
-      }
-      if (!onPipe && mario.y + mario.h >= H - 28) {
-        mario.y = H - 28 - mario.h; mario.vy = 0; mario.onGround = true;
-      } else if (!onPipe && !onBox) {
-        mario.onGround = false;
-      }
-    }
 
-    // Goomba collision (skip if Mario on box)
-    let marioSafe = (
-      mario.x + mario.w > box.x &&
-      mario.x < box.x + box.w &&
-      Math.abs(mario.y + mario.h - box.y) < 6
-    );
-    for (let g of goombas) {
-      if (gameStarted) {
-        if (!g.lastChange || (performance.now() - g.lastChange) > 2000 + Math.random() * 1000) {
-          if (Math.random() < 0.4) g.dir *= -1;
-          if (Math.random() < 0.7) g.spd = 0.7 + Math.random() * 1.2;
-          g.lastChange = performance.now();
-        }
-        g.x += g.dir * g.spd;
-        if (g.x <= 12 || g.x + g.w >= W - 12) {
-          g.dir *= -1;
-          g.spd = 0.7 + Math.random() * 1.2;
-          g.x = Math.max(12, Math.min(g.x, W - 12 - g.w));
-        }
-        g.bob += 0.04;
-      }
-      if (!marioSafe && rectsCollide(mario, g) && !mario.shocked) {
-        mario.shocked = true;
-        if (soundEnabled) { hitSound.currentTime = 0; hitSound.play(); }
-        mario.x += (mario.x < g.x) ? -20 : 20;
-        mario.vy = -5.2;
-        for (let i = 0; i < 6; i++) {
-          mario.stars.push({ x: mario.x + mario.w/2, y: mario.y - 10, dx: (Math.random()-0.5)*2.2, dy: -2 - Math.random()*2.2, life: 36, angle: Math.random()*Math.PI*2 });
-        }
-        setTimeout(() => { mario.shocked = false; }, 500);
-      }
-    }
-
-    // head-strike detection for blocks
+    // head-strike detection
     if (mario.vy < 0) {
       for (let i = 0; i < answerBlocks.length; i++) {
         const b = answerBlocks[i];
@@ -511,25 +477,74 @@ updateBackButton();
       }
     }
 
+    if (mario.y + mario.h >= H - 28) {
+      mario.y = H - 28 - mario.h; mario.vy = 0; mario.onGround = true;
+    } else mario.onGround = false;
+
+    // goombas motion & collision (MODIFIED: now random movement!)
+    for (let g of goombas) {
+      if (gameStarted) {
+        // Randomly change direction or speed every 2–3 seconds
+        if (!g.lastChange || (performance.now() - g.lastChange) > 2000 + Math.random() * 1000) {
+          if (Math.random() < 0.4) { // 40% chance to change direction
+            g.dir *= -1;
+          }
+          if (Math.random() < 0.7) { // 70% chance to change speed
+            g.spd = 0.7 + Math.random() * 1.2; // speed between 0.7 and 1.9
+          }
+          g.lastChange = performance.now();
+        }
+        g.x += g.dir * g.spd;
+        if (g.x <= 12 || g.x + g.w >= W - 12) {
+          g.dir *= -1;
+          g.spd = 0.7 + Math.random() * 1.2;
+          g.x = Math.max(12, Math.min(g.x, W - 12 - g.w));
+        }
+        g.bob += 0.04;
+      }
+      if (rectsCollide(mario, g) && !mario.shocked) {
+        mario.shocked = true;
+        // Play Sound
+        if (soundEnabled) {
+          hitSound.currentTime = 0;
+          hitSound.play();
+        }
+        //
+        // recoil
+        mario.x += (mario.x < g.x) ? -20 : 20;
+        mario.vy = -5.2;
+        // spawn twinkling stars
+        for (let i = 0; i < 6; i++) {
+          mario.stars.push({ x: mario.x + mario.w/2, y: mario.y - 10, dx: (Math.random()-0.5)*2.2, dy: -2 - Math.random()*2.2, life: 36, angle: Math.random()*Math.PI*2 });
+        }
+        setTimeout(() => { mario.shocked = false; }, 500);
+      }
+    }
+
     // text question auto-prompt
     const q = questions[currentQ];
     if (q && q.type === 'text') {
       const centerLeft = W * 0.32, centerRight = W * 0.68;
       if (mario.onGround && (mario.x + mario.w / 2) >= centerLeft && (mario.x + mario.w / 2) <= centerRight && !showingPrompt) {
         if (!showingPrompt && !surveyDone && questions[currentQ] && questions[currentQ].type === 'text') {
-          showTextPrompt(questions[currentQ].text, (resp) => { answers.push(resp); advanceQuestion(); });
+          showTextPrompt(questions[currentQ].text, (resp) => { 
+            answers.push(resp); 
+            advanceQuestion(); 
+          });
         }
       }
     }
   }
 
-  // End-screen behavior: excited Mario jumps repeatedly
+  // End-screen behavior: excited Mario jumps repeatedly while celebration running
   if (surveyDone && endCelebrationRunning) {
     endJumpTimer++;
+    // stronger and more frequent impulse
     if (endJumpTimer % 28 === 0 && mario.onGround) {
       mario.vy = -6.2;
       mario.onGround = false;
     }
+    // small horizontal bob while celebrating
     mario.x += Math.sin(endJumpTimer * 0.08) * 0.8;
     mario.x = clamp(mario.x, 10, W - mario.w - 10);
   }
@@ -558,33 +573,36 @@ updateBackButton();
     if (bl.y < -80) balloons.splice(i, 1);
   }
 
-  // ---------- DRAWING ----------
+  // draw
   ctx.clearRect(0, 0, W, H);
+
+  // sky background
   ctx.fillStyle = '#dff6ff'; ctx.fillRect(0, 0, W, H * 0.45);
+
+  // dynamic clouds
   for(const c of clouds) drawCloud(c.x, c.y + Math.sin(c.t)*2, c.s);
+
+  // decorative clouds
   drawCloud(90, 64, 0.9); drawCloud(260, 48, 0.6); drawCloud(720, 84, 0.8);
+
+  // ground
   ctx.fillStyle = '#3fa34a'; ctx.fillRect(0, H - 28, W, 28);
-
-  // Draw trees (left side, behind box)
-  for (const tree of trees) drawTree(tree);
-
-  // Draw fancier wooden box (Angry Birds style)
-  drawWoodenBox(box);
-
-  // Draw right-side pipes
+  
   for (const p of pipes) {
     const px = p.x, py = p.y;
-    // Pipe body
-    ctx.fillStyle = "#2ecc71";
+  
+    ctx.fillStyle = "#2ecc71"; // body
     ctx.fillRect(px, py - p.h, p.r*2, p.h);
-    // Cap
-    ctx.fillStyle = "#27ae60";
+  
+    ctx.fillStyle = "#27ae60"; // cap
     ctx.fillRect(px - 4, py - p.h - 14, p.r*2 + 8, 14);
-    ctx.strokeStyle = "#145a32"; ctx.lineWidth = 2;
+  
+    ctx.strokeStyle = "#145a32"; // outline
+    ctx.lineWidth = 2;
     ctx.strokeRect(px, py - p.h, p.r*2, p.h);
     ctx.strokeRect(px - 4, py - p.h - 14, p.r*2 + 8, 14);
   }
-
+  
   // draw suspended answer blocks
   for (const b of answerBlocks) {
     const shakeOffset = b.shake > 0 ? Math.sin(b.shake * 0.8) * 4 : 0;
@@ -592,6 +610,7 @@ updateBackButton();
     ctx.fillStyle = b.struck ? '#ddd' : '#ffd35c';
     roundRect(ctx, b.x, drawY, b.w, b.h, 6, true, false);
     ctx.strokeStyle = '#b48c19'; ctx.lineWidth = 2; ctx.strokeRect(b.x, drawY, b.w, b.h);
+    // number and smiley
     ctx.fillStyle = '#222';
     ctx.font = '16px Inter, Arial';
     ctx.textAlign = 'center';
@@ -609,7 +628,7 @@ updateBackButton();
     ctx.restore();
   }
 
-  // draw Goombas
+  // draw cute obstacles (v9 style)
   for (const g of goombas) {
     const bob = Math.sin(g.bob) * 2;
     const gx = g.x, gy = g.y + bob;
@@ -629,11 +648,17 @@ updateBackButton();
     ctx.fill();
   }
 
+  // stars (if any)
   updateStars();
   drawStars();
+
+  // mario (v9-style, shows smile when end, eyes move with jump)
   drawPlayer(mario.x, mario.y, mario.w, mario.h);
 
+  // top fixed question panel
   if (!surveyDone) drawQuestionPanel();
+
+  // fireworks & balloons draw
   for (const fw of fireworks) {
     for (const p of fw.particles) {
       ctx.save(); ctx.globalAlpha = Math.max(0, 1 - p.life / 80); ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 3.2, 0, Math.PI * 2); ctx.fill(); ctx.restore();
@@ -673,59 +698,9 @@ function roundRect(ctx, x, y, w, h, r, fill, stroke) {
   if (fill) ctx.fill();
   if (stroke) ctx.stroke();
 }
-function drawWoodenBox(box) {
-  ctx.save();
-  ctx.fillStyle = "#b97a56";
-  ctx.strokeStyle = "#7c4f26";
-  ctx.lineWidth = 4;
-  ctx.shadowColor = "#65432155";
-  ctx.shadowBlur = 8;
-  ctx.fillRect(box.x, box.y, box.w, box.h);
-  ctx.strokeRect(box.x, box.y, box.w, box.h);
-  ctx.lineWidth = 2;
-  for (let i = 1; i < 4; i++) {
-    let px = box.x + (box.w / 4) * i;
-    ctx.beginPath();
-    ctx.moveTo(px, box.y + 4);
-    ctx.lineTo(px, box.y + box.h - 4);
-    ctx.strokeStyle = "#e2b07a";
-    ctx.stroke();
-  }
-  ctx.strokeStyle = "#e2b07a";
-  ctx.beginPath();
-  ctx.moveTo(box.x + 3, box.y + 8);
-  ctx.lineTo(box.x + box.w - 3, box.y + 8);
-  ctx.moveTo(box.x + 3, box.y + box.h - 8);
-  ctx.lineTo(box.x + box.w - 3, box.y + box.h - 8);
-  ctx.stroke();
-  for (let i = 0; i < 4; i++) {
-    ctx.beginPath();
-    ctx.arc(box.x + (box.w / 4) * i + box.w / 8, box.y + 12, 2, 0, Math.PI*2);
-    ctx.arc(box.x + (box.w / 4) * i + box.w / 8, box.y + box.h - 12, 2, 0, Math.PI*2);
-    ctx.fillStyle = "#775c3b";
-    ctx.fill();
-  }
-  ctx.restore();
-}
-function drawTree(tree) {
-  ctx.save();
-  ctx.fillStyle = "#8d5524";
-  ctx.fillRect(tree.x, H - 28 - tree.trunkH, tree.trunkW, tree.trunkH);
-  ctx.beginPath();
-  ctx.arc(tree.x + tree.trunkW/2, H - 28 - tree.trunkH, tree.foliageR, Math.PI*1.05, Math.PI*2.05, false);
-  ctx.fillStyle = tree.c;
-  ctx.shadowColor = "#4b7429";
-  ctx.shadowBlur = 18;
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.beginPath();
-  ctx.arc(tree.x + tree.trunkW/2 - tree.foliageR/3, H - 28 - tree.trunkH - tree.foliageR/3, tree.foliageR/2.8, 0, Math.PI*2);
-  ctx.fillStyle = "#e3ffd7";
-  ctx.globalAlpha = 0.18;
-  ctx.fill();
-  ctx.globalAlpha = 1;
-  ctx.restore();
-}
+
+
+// --- Stars helpers (ouch effect) ---
 function updateStars(){
   mario.stars.forEach(s=>{ s.x+=s.dx; s.y+=s.dy; s.dy+=0.1; s.life--; s.angle+=0.22; });
   mario.stars = mario.stars.filter(s=>s.life>0);
@@ -746,15 +721,22 @@ function drawStars(){
     ctx.restore();
   });
 }
+// mario drawing (v9 style): small smile throughout, bigger laugh at end; eyes track upward while jumping
+
 function drawPlayer(x, y, w, h) {
   ctx.save();
+  // body
   ctx.fillStyle = '#e84c3d';
   roundRect(ctx, x, y, w, h, 6, true, false);
+  // hat/shoulder patch
   ctx.fillStyle = '#bd2e2e';
   ctx.fillRect(x, y, w, Math.round(h * 0.18));
+  // face patch
   ctx.fillStyle = '#ffe6cf';
   ctx.fillRect(x + w * 0.18, y + 8, w * 0.64, 8);
+
   if (mario.shocked) {
+    // 😲 Shocked eyes: big whites + tiny pupils
     ctx.fillStyle = '#fff';
     ctx.beginPath();
     ctx.ellipse(x + w*0.36, y + h*0.42, 4, 5, 0, 0, Math.PI*2);
@@ -765,11 +747,13 @@ function drawPlayer(x, y, w, h) {
     ctx.arc(x + w*0.36, y + h*0.42, 1.2, 0, Math.PI*2);
     ctx.arc(x + w*0.64, y + h*0.42, 1.2, 0, Math.PI*2);
     ctx.fill();
+    // O mouth
     ctx.fillStyle = '#b33';
     ctx.beginPath();
     ctx.arc(x + w*0.5, y + h*0.70, 5, 0, Math.PI*2);
     ctx.fill();
   } else {
+    // 👀 Eyes: follow movement horizontally + diagonal shift on jump/fall
     let vx = 0;
     if (keys['ArrowLeft'] || keys['a']) vx = -1;
     if (keys['ArrowRight'] || keys['d']) vx = 1;
@@ -781,12 +765,39 @@ function drawPlayer(x, y, w, h) {
     ctx.arc(x + w * 0.36 + eyeXOffset, eyeBaseY + eyeYOffset, 2.5, 0, Math.PI * 2);
     ctx.arc(x + w * 0.64 + eyeXOffset, eyeBaseY + eyeYOffset, 2.5, 0, Math.PI * 2);
     ctx.fill();
+
+    // 😀 Mouth: small smile during survey, big laugh at end
     if (surveyDone) {
       ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.arc(x + w*0.5, y + h*0.66, 11, 0.15, Math.PI - 0.15);
       ctx.stroke();
-      ctx.fillStyle = '#b33'; ctx.beginPath(); ctx.fill();
+      ctx.fillStyle = '#b33';
+      ctx.beginPath();
+      // ctx.ellipse(x + w*0.5, y + h*0.72, 9, 6, 0, 0, Math.PI*2);
+      ctx.fill();
+      
+      // // 😊 Curved eyes
+      // ctx.strokeStyle = "#222";
+      // ctx.lineWidth = 2;
+        
+      // // left eye (curved arc)
+      // ctx.beginPath();
+      // ctx.arc(x + w * 0.36, y + h * 0.42, 4, 0.1 * Math.PI, 0.9 * Math.PI);
+      // ctx.stroke();
+        
+      // // right eye (curved arc)
+      // ctx.beginPath();
+      // ctx.arc(x + w * 0.64, y + h * 0.42, 4, 0.1 * Math.PI, 0.9 * Math.PI);
+      // ctx.stroke();
+       
+      // // 😀 Big smiling mouth
+      // ctx.strokeStyle = "#3b2a1a";
+      // ctx.lineWidth = 2.5;
+      // ctx.beginPath();
+      // ctx.arc(x + w * 0.5, y + h * 0.66, 12, 0.15 * Math.PI, 0.85 * Math.PI);
+      // ctx.stroke();
+      
     } else {
       ctx.strokeStyle = '#3b2a1a'; ctx.lineWidth = 1.2;
       ctx.beginPath();
@@ -794,8 +805,11 @@ function drawPlayer(x, y, w, h) {
       ctx.stroke();
     }
   }
+
   ctx.restore();
 }
+
+// drawQuestionPanel (fixed top)
 function drawQuestionPanel() {
   const panelW = clamp(820, 320, W - 48);
   const panelH = 92;
@@ -811,9 +825,7 @@ function drawQuestionPanel() {
   const text = q ? q.text : "No question";
   wrapText(ctx, text, px + 18, py + 34, panelW - 36, 22);
   ctx.fillStyle = '#4a6b82'; ctx.font = '13px Arial';
-  const hint = q && q.type === 'scale'
-    ? "Jump up and strike a numbered box from below (or click a box)."
-    : "Move to the center to type your response when prompted. You can rest Mario on the wooden box to avoid Goombas while thinking!";
+  const hint = q && q.type === 'scale' ? "Jump up and strike a numbered box from below (or click a box)." : "Move to the center to type your response when prompted.";
   ctx.fillText(hint, px + 18, py + panelH - 12);
 }
 function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
@@ -825,5 +837,12 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   ctx.fillText(line, x, y);
 }
 
-// Attach events
-backBtn.addEventListener('click', goBackOneQuestion);
+// Wiring Back Button
+document.getElementById('backBtn').addEventListener('click', goBackOneQuestion);
+
+// ---------- Ensure answerBlocks recalculated on question change ----------
+const originalAdvance = advanceQuestion;
+advanceQuestion = function () {
+  originalAdvance();
+  layoutAnswerBlocks();
+};
