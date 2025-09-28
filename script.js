@@ -234,7 +234,7 @@ function strikeBlock(index) {
   setTimeout(() => { selectScale(b.val); }, 380);
 }
 function selectScale(val) {
-  answers.push(val.toString()); // FIX: always push as string!
+  answers.push(val);
   advanceQuestion();
 }
 function goBackOneQuestion() {
@@ -289,20 +289,33 @@ function showTextPrompt(qText, callback) {
   updateBackButton();
 }
 
-// ---------- GOOGLE FORM SUBMISSION ----------
-function sendResponsesToGoogleForm(answers) {
-  const scriptUrl = "https://script.google.com/macros/s/AKfycbxiH1S62C3yVYwAIgLw0SLzF1kYG3QlGeVkQ9gQTR2utua8VoCQby5hp5IIgiPRxR2o/exec"; //Apps Script Web App URL
-  // Map answers to q1...q18
-  const data = {};
-  for (let i = 0; i < answers.length; i++) {
-    data["q" + (i+1)] = answers[i];
+// ---------- Server submission ----------
+async function submitAnonymizedResults(payload) {
+  try {
+    const resp = await fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!resp.ok) {
+      console.warn('Submission failed', resp.status);
+      storeLocalBackup(payload);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.warn('Submission error', e);
+    storeLocalBackup(payload);
+    return false;
   }
-  fetch(scriptUrl, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: Object.entries(data).map(([k, v]) => encodeURIComponent(k) + "=" + encodeURIComponent(v)).join("&")
-  });
+}
+function storeLocalBackup(payload) {
+  try {
+    const raw = localStorage.getItem(LOCAL_RESPONSES_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    arr.push(payload);
+    localStorage.setItem(LOCAL_RESPONSES_KEY, JSON.stringify(arr));
+  } catch (e) { }
 }
 
 // ---------- Finish: end screen + celebration ----------
@@ -321,10 +334,6 @@ function finishSurvey() {
       clientTime: new Date().toISOString()
     }
   };
-
-  // --- Google Form Submission ---
-  sendResponsesToGoogleForm(answers);
-
   mario.x = Math.round(W/2 - mario.w/2);
   mario.y = H - 28 - mario.h;
   mario.vy = 0;
@@ -340,9 +349,15 @@ function finishSurvey() {
     soundBtn.style.cursor = "not-allowed";
     soundBtn.title = "Sound disabled after survey";
   }
-  openPrompt.classList.add('hidden');
-  endScreen.classList.remove('hidden');
-  startEndCelebration();
+  submitAnonymizedResults(payload).then(success => {
+    openPrompt.classList.add('hidden');
+    endScreen.classList.remove('hidden');
+    startEndCelebration();
+  }).catch(() => {
+    openPrompt.classList.add('hidden');
+    endScreen.classList.remove('hidden');
+    startEndCelebration();
+  });
   backBtn.style.display = "none"; // Hide backBtn on end screen
 }
 function startEndCelebration() {
@@ -502,7 +517,7 @@ updateBackButton();
       const centerLeft = W * 0.32, centerRight = W * 0.68;
       if (mario.onGround && (mario.x + mario.w / 2) >= centerLeft && (mario.x + mario.w / 2) <= centerRight && !showingPrompt) {
         if (!showingPrompt && !surveyDone && questions[currentQ] && questions[currentQ].type === 'text') {
-          showTextPrompt(questions[currentQ].text, (resp) => { answers.push(resp.toString()); advanceQuestion(); });
+          showTextPrompt(questions[currentQ].text, (resp) => { answers.push(resp); advanceQuestion(); });
         }
       }
     }
