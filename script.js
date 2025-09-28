@@ -5,28 +5,6 @@ const SINGLE_SUBMIT = false;
 const LOCAL_KEY = 'survey_completed_v1';
 const LOCAL_RESPONSES_KEY = 'survey_responses';
 
-// ---------- GOOGLE FORM ENTRY MAPPING (Update this if your form changes) ----------
-const entryMapping = [
-  "entry.1724442667", // How would you rate the overall vision...
-  "entry.146502797",  // To what extent do you feel DDIE’s leadership...
-  "entry.1540181907", // Over the past year...
-  "entry.219406629",  // Looking forward, what do DDIE’s leadership...
-  "entry.4555481",    // How satisfied are you with the responsiveness...
-  "entry.567046895",  // Has your account manager changed this year...
-  "entry.498095553",  // To what extent do you feel your account manager...
-  "entry.1238333287", // What additional steps could your account manager...
-  "entry.1098735143", // How would you rate the overall quality...
-  "entry.333588296",  // How satisfied are you with DDIE’s response times...
-  "entry.122617014",  // How do you rate DDIE’s overall technical competency...
-  "entry.1111852999", // What improvements, if any, have you noticed...
-  "entry.795879044",  // How can DDIE further improve...
-  "entry.702624036",  // How would you rate DDIE’s credibility...
-  "entry.109116447",  // How engaged do you feel DDIE is...
-  "entry.731035627",  // What additional steps could DDIE take...
-  "entry.1222441451", // What do you think DDIE is doing well?
-  "entry.2000623643", // What areas do you think DDIE could improve?
-];
-
 // ---------- QUESTIONS ----------
 const questions = [
   { section: "Leadership", text: "How would you rate the overall vision and strategic direction provided by DDIE’s leadership?", type: "scale", scale: 5 },
@@ -326,25 +304,6 @@ function sendResponsesToGoogleForm(answers) {
     body: Object.entries(data).map(([k, v]) => encodeURIComponent(k) + "=" + encodeURIComponent(v)).join("&")
   });
 }
-// function sendResponsesToGoogleForm(answers) {
-//   // DEBUG: See what's being sent
-//   console.log("Submitting to Google Form:", answers);
-
-//   const googleFormUrl = "https://docs.google.com/forms/u/0/d/e/1FAIpQLSfllOaHEoxhUpwB0MuqQuh7malLyl3bGuemvr5BflVq0JqL6Q/formResponse";
-//   const data = {};
-//   for (let i = 0; i < answers.length; i++) {
-//     if (entryMapping[i]) data[entryMapping[i]] = answers[i];
-//   }
-//   const formBody = Object.entries(data)
-//     .map(([k, v]) => encodeURIComponent(k) + "=" + encodeURIComponent(v))
-//     .join("&");
-//   fetch(googleFormUrl, {
-//     method: "POST",
-//     mode: "no-cors",
-//     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-//     body: formBody
-//   });
-// }
 
 // ---------- Finish: end screen + celebration ----------
 function finishSurvey() {
