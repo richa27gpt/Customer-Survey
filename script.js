@@ -305,6 +305,20 @@ function sendResponsesToGoogleForm(answers) {
   });
 }
 
+// --------- POWER AUTOMATE SUBMISSION ---------
+function sendResponsesToPowerAutomate(answers) {
+  const endpointUrl = "https://default9d1b36109ab042d593aa46150d723d.87.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/84970fc90a9742cb89666fd77b5ec668/triggers/manual/paths/invoke?api-version=1"; // Power Automate HTTP endpoint
+  const data = {};
+  for (let i = 0; i < answers.length; i++) {
+    data["q" + (i + 1)] = answers[i];
+  }
+  fetch(endpointUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+}
+
 // ---------- Finish: end screen + celebration ----------
 function finishSurvey() {
   surveyDone = true;
