@@ -523,15 +523,35 @@ updateBackButton();
   }
 
   // End-screen behavior: excited Mario jumps repeatedly
+  // End-screen behavior: super-excited Mario jumps & wiggles
   if (surveyDone && endCelebrationRunning) {
     endJumpTimer++;
-    if (endJumpTimer % 28 === 0 && mario.onGround) {
-      mario.vy = -6.2;
+  
+    // Jump more often (every ~20 frames instead of 28) and higher
+    if (endJumpTimer % 20 === 0 && mario.onGround) {
+      mario.vy = -8; // stronger jump
       mario.onGround = false;
     }
-    mario.x += Math.sin(endJumpTimer * 0.08) * 0.8;
+  
+    // Make Mario wiggle side-to-side faster
+    mario.x += Math.sin(endJumpTimer * 0.2) * 1.5;
     mario.x = clamp(mario.x, 10, W - mario.w - 10);
+  
+    // Add slight tilt/rotation effect for excitement
+    mario.rotation = Math.sin(endJumpTimer * 0.3) * 0.2; // radians
+  
+    // Speed up his running animation to look more energetic
+    mario.animSpeed = 1.8; 
   }
+  // if (surveyDone && endCelebrationRunning) {
+  //   endJumpTimer++;
+  //   if (endJumpTimer % 28 === 0 && mario.onGround) {
+  //     mario.vy = -6.2;
+  //     mario.onGround = false;
+  //   }
+  //   mario.x += Math.sin(endJumpTimer * 0.08) * 0.8;
+  //   mario.x = clamp(mario.x, 10, W - mario.w - 10);
+  // }
 
   // update coin pops and shakes
   for (let i = coinPops.length - 1; i >= 0; i--) {
