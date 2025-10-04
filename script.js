@@ -6,29 +6,54 @@ const LOCAL_KEY = 'survey_completed_v1';
 const LOCAL_RESPONSES_KEY = 'survey_responses';
 
 // ---------- QUESTIONS ----------
+// const questions = [
+//   { section: "Leadership", text: "How would you rate the overall vision and strategic direction provided by DDIE’s leadership?", type: "scale", scale: 5 },
+//   { section: "Leadership", text: "To what extent do you feel DDIE’s leadership is aligned with your organization’s goals and priorities?", type: "scale", scale: 5 },
+//   { section: "Leadership", text: "Over the past year, what specific improvements or changes in DDIE’s leadership have you noticed?", type: "text" },
+//   { section: "Leadership", text: "Looking forward, what do DDIE’s leadership need to improve to support you better?", type: "text" },
+
+//   { section: "Account Management", text: "How satisfied are you with the responsiveness and engagement of your account manager?", type: "scale", scale: 5 },
+//   { section: "Account Management", text: "Has your account manager changed this year? If Yes, to what extent has this change affected your experience of DDIE (1 = Much Worse, 5 = Much Better)?", type: "scale", scale: 5 },
+//   { section: "Account Management", text: "To what extent do you feel your account manager is aligned with your organization’s goals and priorities?", type: "scale", scale: 5 },
+//   { section: "Account Management", text: "What additional steps could your account manager take to improve responsiveness, engagement, or alignment with your organization?", type: "text" },
+
+//   { section: "Service Delivery", text: "How would you rate the overall quality of service delivery provided by DDIE?", type: "scale", scale: 5 },
+//   { section: "Service Delivery", text: "How satisfied are you with DDIE’s response times to your requests or issues?", type: "scale", scale: 5 },
+//   { section: "Service Delivery", text: "How do you rate DDIE’s overall technical competency for the services provided to you?", type: "scale", scale: 5 },
+//   { section: "Service Delivery", text: "What improvements, if any, have you noticed in DDIE’s service delivery over the past year?", type: "text" },
+//   { section: "Service Delivery", text: "How can DDIE further improve future service delivery?", type: "text" },
+
+//   { section: "Credibility", text: "How would you rate DDIE’s credibility as a trusted partner?", type: "scale", scale: 5 },
+//   { section: "Credibility", text: "How engaged do you feel DDIE is in supporting your business goals and priorities?", type: "scale", scale: 5 },
+//   { section: "Credibility", text: "What additional steps could DDIE take to improve their credibility or engagement with your organization?", type: "text" },
+
+//   { section: "General", text: "What do you think DDIE is doing well?", type: "text" },
+//   { section: "General", text: "What areas do you think DDIE could improve?", type: "text" }
+// ];
+
 const questions = [
-  { section: "Leadership", text: "How would you rate the overall vision and strategic direction provided by DDIE’s leadership?", type: "scale", scale: 5 },
-  { section: "Leadership", text: "To what extent do you feel DDIE’s leadership is aligned with your organization’s goals and priorities?", type: "scale", scale: 5 },
-  { section: "Leadership", text: "Over the past year, what specific improvements or changes in DDIE’s leadership have you noticed?", type: "text" },
-  { section: "Leadership", text: "Looking forward, what do DDIE’s leadership need to improve to support you better?", type: "text" },
+  { section: "All Hands Meeting Experience", text: "How would you rate the overall value you get from attending the All Hands meetings?", type: "scale", scale: 5 },
+  { section: "All Hands Meeting Experience", text: "To what extent do you feel the topics discussed in All Hands meetings are aligned with your team’s goals and priorities?", type: "scale", scale: 5 },
+  { section: "All Hands Meeting Experience", text: "Over the past year, what specific improvements or changes have you noticed in the format or content of the All Hands meetings?", type: "text" },
+  { section: "All Hands Meeting Experience", text: "Looking forward, what could be improved in future All Hands meetings to support you and your team better?", type: "text" },
 
-  { section: "Account Management", text: "How satisfied are you with the responsiveness and engagement of your account manager?", type: "scale", scale: 5 },
-  { section: "Account Management", text: "Has your account manager changed this year? If Yes, to what extent has this change affected your experience of DDIE (1 = Much Worse, 5 = Much Better)?", type: "scale", scale: 5 },
-  { section: "Account Management", text: "To what extent do you feel your account manager is aligned with your organization’s goals and priorities?", type: "scale", scale: 5 },
-  { section: "Account Management", text: "What additional steps could your account manager take to improve responsiveness, engagement, or alignment with your organization?", type: "text" },
+  { section: "Engagement & Participation", text: "How satisfied are you with the opportunities to participate or ask questions during All Hands meetings?", type: "scale", scale: 5 },
+  { section: "Engagement & Participation", text: "Has the format of All Hands meetings changed this year? If yes, to what extent has this change affected your experience (1 = Much Worse, 5 = Much Better)?", type: "scale", scale: 5 },
+  { section: "Engagement & Participation", text: "To what extent do you feel your voice or feedback is heard in All Hands meetings?", type: "scale", scale: 5 },
+  { section: "Engagement & Participation", text: "What additional steps could be taken to improve engagement or participation in All Hands meetings?", type: "text" },
 
-  { section: "Service Delivery", text: "How would you rate the overall quality of service delivery provided by DDIE?", type: "scale", scale: 5 },
-  { section: "Service Delivery", text: "How satisfied are you with DDIE’s response times to your requests or issues?", type: "scale", scale: 5 },
-  { section: "Service Delivery", text: "How do you rate DDIE’s overall technical competency for the services provided to you?", type: "scale", scale: 5 },
-  { section: "Service Delivery", text: "What improvements, if any, have you noticed in DDIE’s service delivery over the past year?", type: "text" },
-  { section: "Service Delivery", text: "How can DDIE further improve future service delivery?", type: "text" },
+  { section: "Content & Delivery", text: "How would you rate the overall quality of presentations and information shared during All Hands meetings?", type: "scale", scale: 5 },
+  { section: "Content & Delivery", text: "How satisfied are you with the clarity and relevance of updates provided in All Hands meetings?", type: "scale", scale: 5 },
+  { section: "Content & Delivery", text: "How do you rate the technical competency of presenters or speakers in All Hands meetings?", type: "scale", scale: 5 },
+  { section: "Content & Delivery", text: "What improvements, if any, have you noticed in the delivery or content of All Hands meetings over the past year?", type: "text" },
+  { section: "Content & Delivery", text: "How can future All Hands meetings be further improved in terms of content or delivery?", type: "text" },
 
-  { section: "Credibility", text: "How would you rate DDIE’s credibility as a trusted partner?", type: "scale", scale: 5 },
-  { section: "Credibility", text: "How engaged do you feel DDIE is in supporting your business goals and priorities?", type: "scale", scale: 5 },
-  { section: "Credibility", text: "What additional steps could DDIE take to improve their credibility or engagement with your organization?", type: "text" },
+  { section: "Impact & Value", text: "How would you rate the impact of All Hands meetings on your understanding of company goals and direction?", type: "scale", scale: 5 },
+  { section: "Impact & Value", text: "How engaged do you feel with the company’s vision and priorities after attending All Hands meetings?", type: "scale", scale: 5 },
+  { section: "Impact & Value", text: "What additional steps could be taken to improve the impact or value of All Hands meetings for you?", type: "text" },
 
-  { section: "General", text: "What do you think DDIE is doing well?", type: "text" },
-  { section: "General", text: "What areas do you think DDIE could improve?", type: "text" }
+  { section: "General", text: "What do you think is working well in the current All Hands meetings?", type: "text" },
+  { section: "General", text: "What areas do you think could be improved in future All Hands meetings?", type: "text" }
 ];
 
 // ---------- Canvas & DOM ----------
